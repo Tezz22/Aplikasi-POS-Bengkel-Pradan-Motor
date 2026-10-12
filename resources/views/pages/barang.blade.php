@@ -1,0 +1,6 @@
+@extends('layouts.app')
+@section('title', 'Master Data Barang')
+@section('content')
+<div class="page-heading"><div><h1>Master Data Barang</h1><p>Kelola katalog, harga, dan persediaan</p></div><a class="btn" href="#form-data">＋ Tambah Barang</a></div>
+<div class="card table-card"><div class="table-head"><strong>Daftar Data</strong><input class="search" placeholder="Cari data..." data-search="#tbl"></div><div class="table-wrap"><table id="tbl"><thead><tr><th>Kode</th><th>Nama</th><th>Kategori</th><th>Supplier</th><th>Harga</th><th>Stok</th></tr></thead><tbody><tr><td>BRG-001</td><td>Oli Mesin 1L</td><td>Pelumas</td><td>Supplier Jaya</td><td>Rp 65.000</td><td>42</td></tr></tbody></table></div></div><br><div class="card" id="form-data"><h2>Form Tambah Barang</h2><div class="form-grid"><div class="field"><label>Nama / Keterangan</label><input placeholder="Masukkan nama"></div><div class="field"><label>Kode / Kontak</label><input placeholder="Masukkan kode"></div></div><div class="form-actions"><button class="btn" type="button">Simpan</button></div></div>
+@endsection

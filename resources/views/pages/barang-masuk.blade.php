@@ -1,0 +1,6 @@
+@extends('layouts.app')
+@section('title', 'Gudang (Barang Masuk)')
+@section('content')
+<div class="page-heading"><div><h1>Gudang (Barang Masuk)</h1><p>Catat penerimaan barang</p></div><a class="btn" href="#form-data">＋ Catat Barang Masuk</a></div>
+<div class="card table-card"><div class="table-head"><strong>Daftar Data</strong><input class="search" placeholder="Cari data..." data-search="#tbl"></div><div class="table-wrap"><table id="tbl"><thead><tr><th>Tanggal</th><th>No. Penerimaan</th><th>Supplier</th><th>Jumlah Item</th><th>Petugas</th><th>Status</th></tr></thead><tbody><tr><td>12 Okt 2026</td><td>BM-001</td><td>Supplier Jaya</td><td>20</td><td>Admin Pradan</td><td><span class="badge">Diterima</span></td></tr></tbody></table></div></div><br><div class="card" id="form-data"><h2>Form Catat Barang Masuk</h2><div class="form-grid"><div class="field"><label>Nama / Keterangan</label><input placeholder="Masukkan nama"></div><div class="field"><label>Kode / Kontak</label><input placeholder="Masukkan kode"></div></div><div class="form-actions"><button class="btn" type="button">Simpan</button></div></div>
+@endsection
