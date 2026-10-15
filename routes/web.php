@@ -77,25 +77,26 @@ Route::post('/profil/password', function (Request $request) {
 })->middleware('auth')->name('profile.password.update');
 Route::get('/registrasi',fn()=>view('pages.register'))->name('register');
 Route::prefix('kasir')->name('kasir.')->middleware('auth')->group(function () {
-    Route::get('/dashboard', fn () => view('pages.dashboard'))->name('dashboard');
-    Route::get('/transaksi', fn () => view('pages.transaksi'))->name('transaksi');
-    Route::get('/pelanggan', fn () => view('pages.pelanggan'))->name('pelanggan');
-    Route::get('/stok', fn () => view('pages.stok'))->name('stok');
-    Route::get('/riwayat', fn () => view('pages.riwayat'))->name('riwayat');
-    Route::get('/laporan', fn () => view('pages.laporan'))->name('laporan');
-    Route::get('/profil', fn () => view('pages.profil'))->name('profil');
+    Route::get('/dashboard', fn () => view('pages.kasir.dashboard'))->name('dashboard');
+    Route::get('/transaksi', fn () => view('pages.kasir.transaksi'))->name('transaksi');
+    Route::get('/pelanggan', fn () => view('pages.kasir.pelanggan'))->name('pelanggan');
+    Route::get('/stok', fn () => view('pages.kasir.stok'))->name('stok');
+    Route::get('/riwayat', fn () => view('pages.kasir.riwayat'))->name('riwayat');
+    Route::get('/laporan', fn () => view('pages.kasir.laporan'))->name('laporan');
+    Route::get('/profil', fn () => view('pages.kasir.profil'))->name('profil');
 });
 
 Route::prefix('admin')->name('admin.')->middleware('auth')->group(function () {
-    Route::get('/dashboard', fn () => view('pages.admin-dashboard'))->name('dashboard');
-    Route::get('/pengguna', fn () => view('pages.pengguna'))->name('pengguna');
-    Route::get('/barang', fn () => view('pages.barang'))->name('barang');
-    Route::get('/kategori', fn () => view('pages.kategori'))->name('kategori');
-    Route::get('/supplier', fn () => view('pages.supplier'))->name('supplier');
-    Route::get('/layanan', fn () => view('pages.layanan'))->name('layanan');
-    Route::get('/pelanggan', fn () => view('pages.admin-pelanggan'))->name('pelanggan');
-    Route::get('/barang-masuk', fn () => view('pages.barang-masuk'))->name('barang-masuk');
-    Route::get('/stok-opname', fn () => view('pages.stok-opname'))->name('stok-opname');
-    Route::get('/laporan', fn () => view('pages.admin-laporan'))->name('laporan');
-    Route::get('/profil', fn () => view('pages.profil'))->name('profil');
+    Route::get('/dashboard', fn () => view('pages.admin.dashboard'))->name('dashboard');
+    Route::get('/pengguna', fn () => view('pages.admin.pengguna'))->name('pengguna');
+    Route::get('/barang', fn () => view('pages.admin.barang'))->name('barang');
+    Route::get('/kategori', fn () => view('pages.admin.kategori'))->name('kategori');
+    Route::get('/supplier', fn () => view('pages.admin.supplier'))->name('supplier');
+    Route::get('/layanan', fn () => view('pages.admin.layanan'))->name('layanan');
+    Route::get('/pelanggan', fn () => view('pages.admin.pelanggan'))->name('pelanggan');
+    Route::get('/barang-masuk', fn () => view('pages.admin.barang-masuk'))->name('barang-masuk');
+    Route::get('/stok-opname', fn () => view('pages.admin.stok-opname'))->name('stok-opname');
+    Route::get('/riwayat', fn () => view('pages.admin.riwayat'))->name('riwayat');
+    Route::get('/laporan', fn () => view('pages.admin.laporan'))->name('laporan');
+    Route::get('/profil', fn () => view('pages.admin.profil'))->name('profil');
 });

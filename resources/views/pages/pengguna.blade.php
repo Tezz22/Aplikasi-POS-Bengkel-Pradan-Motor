@@ -1,6 +1,0 @@
-@extends('layouts.app')
-@section('title', 'Master Data Pengguna')
-@section('content')
-<div class="page-heading"><div><h1>Master Data Pengguna</h1><p>Kelola akun kasir dan administrator</p></div><a class="btn" href="#form-data">＋ Tambah Pengguna</a></div>
-<div class="card table-card"><div class="table-head"><strong>Daftar Data</strong><input class="search" placeholder="Cari data..." data-search="#tbl"></div><div class="table-wrap"><table id="tbl"><thead><tr><th>Nama</th><th>Email</th><th>Peran</th><th>Status</th></tr></thead><tbody><tr><td>Joo</td><td>joo@pradanmotor.test</td><td>Kasir</td><td>Aktif</td></tr></tbody></table></div></div><br><div class="card" id="form-data"><h2>Form Tambah Pengguna</h2><div class="form-grid"><div class="field"><label>Nama / Keterangan</label><input placeholder="Masukkan nama"></div><div class="field"><label>Kode / Kontak</label><input placeholder="Masukkan kode"></div></div><div class="form-actions"><button class="btn" type="button">Simpan</button></div></div>
-@endsection

@@ -1,6 +1,0 @@
-@extends('layouts.app')
-@section('title', 'Master Data Layanan')
-@section('content')
-<div class="page-heading"><div><h1>Master Data Layanan</h1><p>Kelola layanan servis dan tarif</p></div><a class="btn" href="#form-data">＋ Tambah Layanan</a></div>
-<div class="card table-card"><div class="table-head"><strong>Daftar Data</strong><input class="search" placeholder="Cari data..." data-search="#tbl"></div><div class="table-wrap"><table id="tbl"><thead><tr><th>Kode</th><th>Layanan</th><th>Deskripsi</th><th>Tarif</th></tr></thead><tbody><tr><td>LYN-001</td><td>Servis Ringan</td><td>Pemeriksaan berkala</td><td>Rp 75.000</td></tr></tbody></table></div></div><br><div class="card" id="form-data"><h2>Form Tambah Layanan</h2><div class="form-grid"><div class="field"><label>Nama / Keterangan</label><input placeholder="Masukkan nama"></div><div class="field"><label>Kode / Kontak</label><input placeholder="Masukkan kode"></div></div><div class="form-actions"><button class="btn" type="button">Simpan</button></div></div>
-@endsection
