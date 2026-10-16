@@ -42,7 +42,8 @@
             <div class="absolute -bottom-24 -right-24 w-64 h-64 bg-indigo-600/20 rounded-full blur-3xl pointer-events-none"></div>
 
             <div class="relative z-10">
-                <div class="flex items-center gap-2.5 mb-8">
+                <div class="flex items-center gap-3 mb-8">
+                    <img src="{{ asset('assets/images/logo/logo-icon.svg') }}" alt="Logo Pradan Motor" class="w-9 h-9 rounded-xl object-contain shrink-0 shadow-md shadow-blue-500/30">
                     <span class="font-extrabold text-2xl tracking-tight text-white">Pradan Motor</span>
                 </div>
 

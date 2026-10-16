@@ -34,7 +34,72 @@
     </script>
     <style>
         body { font-family: 'Inter', system-ui, sans-serif; }
+
+        /* Collapsible Sidebar Styles */
+        #app-sidebar {
+            transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        #app-sidebar.collapsed,
+        html.sidebar-init-collapsed #app-sidebar {
+            width: 5rem !important; /* 80px */
+        }
+        #app-sidebar.collapsed .sidebar-text,
+        html.sidebar-init-collapsed #app-sidebar .sidebar-text {
+            display: none !important;
+        }
+        #app-sidebar.collapsed .sidebar-item,
+        html.sidebar-init-collapsed #app-sidebar .sidebar-item {
+            justify-content: center !important;
+            padding-left: 0.5rem !important;
+            padding-right: 0.5rem !important;
+        }
+        #app-sidebar.collapsed .sidebar-dropdown-menu,
+        html.sidebar-init-collapsed #app-sidebar .sidebar-dropdown-menu {
+            display: none !important;
+        }
+        #app-sidebar.collapsed .brand-container,
+        html.sidebar-init-collapsed #app-sidebar .brand-container {
+            justify-content: center !important;
+            padding-left: 0.5rem !important;
+            padding-right: 0.5rem !important;
+        }
+        #app-sidebar.collapsed .brand-link,
+        html.sidebar-init-collapsed #app-sidebar .brand-link {
+            justify-content: center !important;
+        }
+        #app-sidebar.collapsed .profile-container,
+        html.sidebar-init-collapsed #app-sidebar .profile-container {
+            justify-content: center !important;
+            padding-left: 0.5rem !important;
+            padding-right: 0.5rem !important;
+        }
+        #app-sidebar.collapsed .profile-link,
+        html.sidebar-init-collapsed #app-sidebar .profile-link {
+            justify-content: center !important;
+        }
     </style>
+    <script>
+        // Check stored sidebar state to prevent flicker
+        (function() {
+            if (localStorage.getItem('sidebar_collapsed') === '1') {
+                document.documentElement.classList.add('sidebar-init-collapsed');
+            }
+        })();
+
+        function toggleSidebar() {
+            const sidebar = document.getElementById('app-sidebar');
+            if (!sidebar) return;
+            const isCollapsed = sidebar.classList.toggle('collapsed');
+            document.documentElement.classList.toggle('sidebar-init-collapsed', isCollapsed);
+            localStorage.setItem('sidebar_collapsed', isCollapsed ? '1' : '0');
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            if (localStorage.getItem('sidebar_collapsed') === '1') {
+                document.getElementById('app-sidebar')?.classList.add('collapsed');
+            }
+        });
+    </script>
 </head>
 <body class="bg-[#f8f9fa] text-slate-800 antialiased h-screen overflow-hidden">
     <!-- Fixed Shell Container -->
@@ -62,7 +127,7 @@
                     @endif
 
                     {{-- Flash Message Error --}}
-                    @if ($errors->any())
+                    @if (isset($errors) && $errors->any())
                         <div class="mb-6 p-4 bg-rose-50 border border-rose-200 text-rose-800 rounded-2xl text-xs font-medium shadow-xs">
                             <div class="flex items-center gap-2 mb-1">
                                 @include('components.icon', ['name' => 'alert-triangle', 'size' => 18])

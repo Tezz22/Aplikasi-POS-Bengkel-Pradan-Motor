@@ -3,11 +3,11 @@
 @section('title', 'Profil Kasir')
 
 @section('content')
-    @include('components.page-header', [
-        'title'    => 'Profil Kasir',
-        'subtitle' => 'Kelola informasi profil pribadi dan keamanan password',
-        'icon'     => 'profil'
-    ])
+    <x-page-header 
+        title="Profil Kasir" 
+        subtitle="Kelola informasi profil pribadi dan keamanan password" 
+        icon="profil" 
+    />
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div class="bg-white rounded-2xl p-6 border border-gray-100 shadow-xs flex flex-col items-center text-center">
@@ -20,11 +20,11 @@
             <h3 class="text-base font-bold text-gray-900">{{ auth()->user()->name ?? 'Joo' }}</h3>
             <p class="text-xs text-gray-400 mt-0.5">{{ auth()->user()->email ?? 'kasir@pradanmotor.com' }}</p>
             <div class="mt-3">
-                @include('components.badge', [
-                    'type' => 'success',
-                    'size' => 'md',
-                    'text' => 'Kasir Bengkel'
-                ])
+                <x-badge 
+                    type="success" 
+                    size="md" 
+                    text="Kasir Bengkel" 
+                />
             </div>
         </div>
 
@@ -34,34 +34,34 @@
 
             <form action="{{ route('profile.password.update') }}" method="POST" class="space-y-4">
                 @csrf
-                @include('components.input', [
-                    'label' => 'Password Saat Ini',
-                    'name'  => 'current_password',
-                    'type'  => 'password',
-                    'required' => true
-                ])
+                <x-input 
+                    label="Password Saat Ini" 
+                    name="current_password" 
+                    type="password" 
+                    :required="true" 
+                />
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    @include('components.input', [
-                        'label' => 'Password Baru (Min. 8 Karakter)',
-                        'name'  => 'password',
-                        'type'  => 'password',
-                        'required' => true
-                    ])
-                    @include('components.input', [
-                        'label' => 'Konfirmasi Password Baru',
-                        'name'  => 'password_confirmation',
-                        'type'  => 'password',
-                        'required' => true
-                    ])
+                    <x-input 
+                        label="Password Baru (Min. 8 Karakter)" 
+                        name="password" 
+                        type="password" 
+                        :required="true" 
+                    />
+                    <x-input 
+                        label="Konfirmasi Password Baru" 
+                        name="password_confirmation" 
+                        type="password" 
+                        :required="true" 
+                    />
                 </div>
 
                 <div class="pt-3">
-                    @include('components.button', [
-                        'type'    => 'submit',
-                        'variant' => 'primary',
-                        'text'    => 'Perbarui Password'
-                    ])
+                    <x-button 
+                        type="submit" 
+                        variant="primary" 
+                        text="Perbarui Password" 
+                    />
                 </div>
             </form>
         </div>

@@ -3,48 +3,51 @@
 @section('title', 'Dashboard Kasir')
 
 @section('content')
-    @include('components.page-header', [
-        'title'    => 'Dashboard Kasir',
-        'subtitle' => 'Selamat bekerja, kelola transaksi pelanggan bengkel hari ini',
-        'icon'     => 'dashboard',
-        'actions'  => view('components.button', [
-            'variant' => 'primary',
-            'icon'    => 'transaksi',
-            'text'    => 'Buka POS Kasir',
-            'href'    => route('kasir.transaksi')
-        ])->render()
-    ])
+    <x-page-header 
+        title="Dashboard Kasir" 
+        subtitle="Selamat bekerja, kelola transaksi pelanggan bengkel hari ini" 
+        icon="dashboard"
+    >
+        <x-slot:actions>
+            <x-button 
+                variant="primary" 
+                icon="transaksi" 
+                text="Buka POS Kasir" 
+                :href="route('kasir.transaksi')" 
+            />
+        </x-slot:actions>
+    </x-page-header>
 
     <!-- Kasir Metrics -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5 mb-6">
-        @include('components.stat-card', [
-            'label' => 'TOTAL TRANSAKSI SAYA',
-            'value' => '14',
-            'icon'  => 'refresh',
-            'color' => 'blue',
-            'sub'   => 'Hari ini',
-        ])
-        @include('components.stat-card', [
-            'label' => 'PENDAPATAN KASIR',
-            'value' => 'Rp 580.000',
-            'icon'  => 'dollar',
-            'color' => 'emerald',
-            'sub'   => 'Tunai & QRIS',
-        ])
-        @include('components.stat-card', [
-            'label' => 'JASA SELESAI',
-            'value' => '9',
-            'icon'  => 'layanan',
-            'color' => 'purple',
-            'sub'   => 'Unit motor dikerjakan',
-        ])
-        @include('components.stat-card', [
-            'label' => 'STOK KRITIS',
-            'value' => '2',
-            'icon'  => 'alert',
-            'color' => 'amber',
-            'sub'   => 'Segera infokan admin',
-        ])
+        <x-stat-card 
+            label="TOTAL TRANSAKSI SAYA" 
+            :value="$transaksiKasirCount" 
+            icon="refresh" 
+            color="blue" 
+            sub="Hari ini" 
+        />
+        <x-stat-card 
+            label="PENDAPATAN KASIR" 
+            :value="'Rp ' . number_format($pendapatanKasir, 0, ',', '.')" 
+            icon="dollar" 
+            color="emerald" 
+            sub="Tunai & QRIS" 
+        />
+        <x-stat-card 
+            label="JASA SELESAI" 
+            :value="$jasaSelesai" 
+            icon="layanan" 
+            color="purple" 
+            sub="Unit motor dikerjakan" 
+        />
+        <x-stat-card 
+            label="STOK KRITIS" 
+            :value="$stokKritis" 
+            icon="alert" 
+            color="amber" 
+            sub="Segera infokan admin" 
+        />
     </div>
 
     <!-- Transaksi Terakhir Kasir -->
@@ -54,12 +57,12 @@
                 <h3 class="text-sm font-bold text-gray-900">Transaksi Terakhir Kasir</h3>
                 <p class="text-xs text-gray-400 mt-0.5">Penjualan barang & jasa yang Anda proses hari ini</p>
             </div>
-            @include('components.button', [
-                'variant' => 'secondary',
-                'size'    => 'sm',
-                'text'    => 'Lihat Semua Riwayat',
-                'href'    => route('kasir.riwayat')
-            ])
+            <x-button 
+                variant="secondary" 
+                size="sm" 
+                text="Lihat Semua Riwayat" 
+                :href="route('kasir.riwayat')" 
+            />
         </div>
 
         <div class="overflow-x-auto">
@@ -75,30 +78,26 @@
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-50 text-gray-700">
-                    <tr class="hover:bg-slate-50/70">
-                        <td class="py-3 px-3 font-bold text-gray-900">#TRX-001</td>
-                        <td class="py-3 px-3 text-gray-500">14:20</td>
-                        <td class="py-3 px-3 font-semibold text-gray-900">Andi Saputra</td>
-                        <td class="py-3 px-3">
-                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700">Tunai</span>
-                        </td>
-                        <td class="py-3 px-3 text-right font-bold text-gray-900">Rp 85.000</td>
-                        <td class="py-3 px-3 text-center">
-                            @include('components.button-action', ['type' => 'print', 'onclick' => "alert('Cetak struk #TRX-001')"])
-                        </td>
-                    </tr>
-                    <tr class="hover:bg-slate-50/70">
-                        <td class="py-3 px-3 font-bold text-gray-900">#TRX-002</td>
-                        <td class="py-3 px-3 text-gray-500">15:45</td>
-                        <td class="py-3 px-3 font-semibold text-gray-900">Budi Wicaksono</td>
-                        <td class="py-3 px-3">
-                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-blue-50 text-blue-700">QRIS</span>
-                        </td>
-                        <td class="py-3 px-3 text-right font-bold text-gray-900">Rp 120.000</td>
-                        <td class="py-3 px-3 text-center">
-                            @include('components.button-action', ['type' => 'print', 'onclick' => "alert('Cetak struk #TRX-002')"])
-                        </td>
-                    </tr>
+                    @forelse($transaksiTerbaru as $trx)
+                        <tr class="hover:bg-slate-50/70">
+                            <td class="py-3 px-3 font-bold text-gray-900">{{ $trx->no_faktur }}</td>
+                            <td class="py-3 px-3 text-gray-500">{{ \Carbon\Carbon::parse($trx->tanggal)->format('H:i') }}</td>
+                            <td class="py-3 px-3 font-semibold text-gray-900">{{ $trx->pelanggan->nama ?? ($trx->nama_pelanggan_non_member ?? 'Umum') }}</td>
+                            <td class="py-3 px-3">
+                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold {{ $trx->metode_pembayaran === 'Tunai' ? 'bg-emerald-50 text-emerald-700' : 'bg-blue-50 text-blue-700' }}">
+                                    {{ $trx->metode_pembayaran }}
+                                </span>
+                            </td>
+                            <td class="py-3 px-3 text-right font-bold text-gray-900">Rp {{ number_format($trx->total, 0, ',', '.') }}</td>
+                            <td class="py-3 px-3 text-center">
+                                <x-button-action type="print" onclick="alert('Cetak struk {{ $trx->no_faktur }}')" />
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="6" class="py-8 text-center text-gray-400">Belum ada transaksi hari ini</td>
+                        </tr>
+                    @endforelse
                 </tbody>
             </table>
         </div>

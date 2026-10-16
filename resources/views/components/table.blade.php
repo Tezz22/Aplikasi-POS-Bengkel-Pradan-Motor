@@ -17,10 +17,7 @@
         <div class="p-4 sm:p-5 border-b border-gray-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             @if(isset($searchable) && $searchable)
                 <div class="w-full sm:w-72">
-                    @include('components.search', [
-                        'target' => '#' . $tableId,
-                        'placeholder' => $searchPlaceholder ?? 'Cari di tabel...'
-                    ])
+                    <x-search :target="'#' . $tableId" :placeholder="$searchPlaceholder ?? 'Cari di tabel...'" />
                 </div>
             @else
                 <div></div>

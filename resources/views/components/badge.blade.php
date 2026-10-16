@@ -20,5 +20,5 @@
 @endphp
 
 <span class="inline-flex items-center font-semibold rounded-full {{ $style }} {{ $sz }}">
-    {{ $slot ?? ($text ?? '') }}
+    {{ (isset($slot) && $slot->isNotEmpty()) ? $slot : ($text ?? '') }}
 </span>

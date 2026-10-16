@@ -3,11 +3,11 @@
 @section('title', 'Laporan Kasir')
 
 @section('content')
-    @include('components.page-header', [
-        'title'    => 'Laporan Penjualan Kasir',
-        'subtitle' => 'Rekapitulasi penjualan shift dan harian kasir',
-        'icon'     => 'laporan'
-    ])
+    <x-page-header 
+        title="Laporan Penjualan Kasir" 
+        subtitle="Rekapitulasi penjualan shift dan harian kasir" 
+        icon="laporan" 
+    />
 
     <!-- Filter Shift & Tanggal -->
     <div class="flex flex-wrap items-center gap-3 mb-5">
@@ -18,34 +18,35 @@
         </select>
     </div>
 
-    @include('components.table', [
-        'id'      => 'table-laporan-kasir',
-        'headers' => ['METODE PEMBAYARAN', 'JUMLAH TRANSAKSI', 'TOTAL NOMINAL']
-    ])
-        <tr class="hover:bg-slate-50/70 transition-colors">
-            <td class="py-3.5 px-4 first:pl-6 font-semibold text-gray-900">Uang Tunai (Cash)</td>
-            <td class="py-3.5 px-4 text-gray-600">10 Transaksi</td>
-            <td class="py-3.5 px-4 last:pr-6 font-bold text-gray-900">Rp 420.000</td>
-        </tr>
-        <tr class="hover:bg-slate-50/70 transition-colors">
-            <td class="py-3.5 px-4 first:pl-6 font-semibold text-gray-900">QRIS / Non-Tunai</td>
-            <td class="py-3.5 px-4 text-gray-600">4 Transaksi</td>
-            <td class="py-3.5 px-4 last:pr-6 font-bold text-gray-900">Rp 160.000</td>
-        </tr>
+    <x-table 
+        id="table-laporan-kasir" 
+        :headers="['METODE PEMBAYARAN', 'JUMLAH TRANSAKSI', 'TOTAL NOMINAL']"
+    >
+        @forelse($rekapMetode as $rekap)
+            <tr class="hover:bg-slate-50/70 transition-colors">
+                <td class="py-3.5 px-4 first:pl-6 font-semibold text-gray-900">{{ $rekap->metode_pembayaran }}</td>
+                <td class="py-3.5 px-4 text-gray-600">{{ $rekap->jml_transaksi }} Transaksi</td>
+                <td class="py-3.5 px-4 last:pr-6 font-bold text-gray-900">Rp {{ number_format($rekap->total_nominal, 0, ',', '.') }}</td>
+            </tr>
+        @empty
+            <tr>
+                <td colspan="3" class="py-8 text-center text-gray-400">Belum ada transaksi</td>
+            </tr>
+        @endforelse
         <tr class="bg-gray-50/80 font-bold text-gray-900 border-t border-gray-200">
             <td class="py-3.5 px-4 first:pl-6">TOTAL SETORAN KASIR:</td>
-            <td class="py-3.5 px-4 text-gray-700">14 Transaksi</td>
-            <td class="py-3.5 px-4 last:pr-6 text-blue-600 text-sm">Rp 580.000</td>
+            <td class="py-3.5 px-4 text-gray-700">{{ $totalTransaksi }} Transaksi</td>
+            <td class="py-3.5 px-4 last:pr-6 text-blue-600 text-sm">Rp {{ number_format($totalSetoran, 0, ',', '.') }}</td>
         </tr>
-    </div>
+    </x-table>
 
     <div class="flex items-center gap-3 mt-5">
-        @include('components.button', [
-            'variant' => 'primary',
-            'size'    => 'sm',
-            'icon'    => 'printer',
-            'text'    => 'Cetak Rekap Shift Kasir',
-            'onclick' => "alert('Mencetak rekap kasir...')"
-        ])
+        <x-button 
+            variant="primary" 
+            size="sm" 
+            icon="printer" 
+            text="Cetak Rekap Shift Kasir" 
+            onclick="alert('Mencetak rekap kasir...')" 
+        />
     </div>
 @endsection

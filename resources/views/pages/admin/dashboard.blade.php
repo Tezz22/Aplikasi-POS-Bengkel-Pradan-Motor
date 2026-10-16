@@ -4,70 +4,70 @@
 
 @section('content')
     {{-- Page Header --}}
-    @include('components.page-header', [
-        'title'    => 'Dashboard',
-        'subtitle' => 'Ringkasan performa bengkel, ' . date('l, d F Y'),
-        'icon'     => 'dashboard',
-    ])
+    <x-page-header 
+        title="Dashboard" 
+        :subtitle="'Ringkasan performa bengkel, ' . date('l, d F Y')" 
+        icon="dashboard" 
+    />
 
     {{-- Top 4 Metric Cards --}}
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5 mb-5">
-        @include('components.stat-card', [
-            'label' => 'PENDAPATAN (LUNAS)',
-            'value' => 'Rp 724.500',
-            'icon'  => 'dollar',
-            'color' => 'emerald',
-            'sub'   => '+12% dari kemarin',
-        ])
-        @include('components.stat-card', [
-            'label' => 'TOTAL TRANSAKSI',
-            'value' => '18',
-            'icon'  => 'refresh',
-            'color' => 'blue',
-            'sub'   => 'Hari ini',
-        ])
-        @include('components.stat-card', [
-            'label' => 'PRODUK TERJUAL',
-            'value' => '39',
-            'icon'  => 'bag',
-            'color' => 'purple',
-            'sub'   => 'Oli, ban, & sparepart',
-        ])
-        @include('components.stat-card', [
-            'label' => 'RATA-RATA PENDAPATAN',
-            'value' => 'Rp 40.250',
-            'icon'  => 'chart',
-            'color' => 'amber',
-            'sub'   => 'Per transaksi',
-        ])
+        <x-stat-card 
+            label="PENDAPATAN (LUNAS)" 
+            :value="'Rp ' . number_format($pendapatanHariIni, 0, ',', '.')" 
+            icon="dollar" 
+            color="emerald" 
+            sub="Total penjualan" 
+        />
+        <x-stat-card 
+            label="TOTAL TRANSAKSI" 
+            :value="(string)$totalTransaksiHariIni" 
+            icon="refresh" 
+            color="blue" 
+            sub="Transaksi tercatat" 
+        />
+        <x-stat-card 
+            label="PRODUK TERJUAL" 
+            :value="(string)$produkTerjual" 
+            icon="bag" 
+            color="purple" 
+            sub="Oli, ban, & sparepart" 
+        />
+        <x-stat-card 
+            label="RATA-RATA PENDAPATAN" 
+            :value="'Rp ' . number_format($rataRata, 0, ',', '.')" 
+            icon="chart" 
+            color="amber" 
+            sub="Per transaksi" 
+        />
     </div>
 
     {{-- 3 Summary Cards --}}
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-5 mb-6">
-        @include('components.summary-card', [
-            'label' => 'STOK BARANG MENIPIS',
-            'value' => '2',
-            'unit'  => 'produk',
-            'sub'   => 'Perlu segera restock',
-            'icon'  => 'alert',
-            'type'  => 'danger',
-        ])
-        @include('components.summary-card', [
-            'label' => 'TOTAL ITEM BARANG',
-            'value' => '6',
-            'unit'  => 'produk',
-            'sub'   => 'Tersedia di gudang',
-            'icon'  => 'box',
-            'type'  => 'info',
-        ])
-        @include('components.summary-card', [
-            'label' => 'TOTAL JASA',
-            'value' => '21',
-            'unit'  => 'layanan',
-            'sub'   => 'Tarif aktif',
-            'icon'  => 'layanan',
-            'type'  => 'success',
-        ])
+        <x-summary-card 
+            label="STOK BARANG MENIPIS" 
+            :value="(string)$stokMenipis" 
+            unit="produk" 
+            sub="Perlu segera restock" 
+            icon="alert" 
+            type="danger" 
+        />
+        <x-summary-card 
+            label="TOTAL ITEM BARANG" 
+            :value="(string)$totalBarang" 
+            unit="produk" 
+            sub="Tersedia di gudang" 
+            icon="box" 
+            type="info" 
+        />
+        <x-summary-card 
+            label="TOTAL JASA" 
+            :value="(string)$totalJasa" 
+            unit="layanan" 
+            sub="Tarif aktif" 
+            icon="layanan" 
+            type="success" 
+        />
     </div>
 
     {{-- Two Columns: Sales Trend Chart & Status Transaksi --}}
@@ -131,7 +131,7 @@
         <div class="bg-white rounded-2xl p-6 border border-gray-100 shadow-xs flex flex-col">
             <div class="flex items-center justify-between pb-3 border-b border-gray-100 mb-2">
                 <h3 class="text-sm font-bold text-gray-900">Status Transaksi</h3>
-                <span class="text-xs text-gray-400 font-medium">Hari ini</span>
+                <span class="text-xs text-gray-400 font-medium">Terbaru</span>
             </div>
 
             <div class="overflow-x-auto flex-1">
@@ -144,41 +144,17 @@
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-50 text-gray-700">
-                        <tr class="hover:bg-gray-50/50">
-                            <td class="py-2.5 font-medium text-gray-500">#TRX-001</td>
-                            <td class="py-2.5 font-semibold text-gray-900">Andi S.</td>
-                            <td class="py-2.5 text-right font-bold text-gray-900">85.000</td>
-                        </tr>
-                        <tr class="hover:bg-gray-50/50">
-                            <td class="py-2.5 font-medium text-gray-500">#TRX-002</td>
-                            <td class="py-2.5 font-semibold text-gray-900">Budi W.</td>
-                            <td class="py-2.5 text-right font-bold text-gray-900">120.000</td>
-                        </tr>
-                        <tr class="hover:bg-gray-50/50">
-                            <td class="py-2.5 font-medium text-gray-500">#TRX-003</td>
-                            <td class="py-2.5 font-semibold text-gray-900">Citra M.</td>
-                            <td class="py-2.5 text-right font-bold text-gray-900">45.000</td>
-                        </tr>
-                        <tr class="hover:bg-gray-50/50">
-                            <td class="py-2.5 font-medium text-gray-500">#TRX-004</td>
-                            <td class="py-2.5 font-semibold text-gray-900">Dian P.</td>
-                            <td class="py-2.5 text-right font-bold text-gray-900">200.000</td>
-                        </tr>
-                        <tr class="hover:bg-gray-50/50">
-                            <td class="py-2.5 font-medium text-gray-500">#TRX-005</td>
-                            <td class="py-2.5 font-semibold text-gray-900">Eka R.</td>
-                            <td class="py-2.5 text-right font-bold text-gray-900">75.000</td>
-                        </tr>
-                        <tr class="hover:bg-gray-50/50">
-                            <td class="py-2.5 font-medium text-gray-500">#TRX-006</td>
-                            <td class="py-2.5 font-semibold text-gray-900">Fajar K.</td>
-                            <td class="py-2.5 text-right font-bold text-gray-900">55.000</td>
-                        </tr>
-                        <tr class="hover:bg-gray-50/50">
-                            <td class="py-2.5 font-medium text-gray-500">#TRX-007</td>
-                            <td class="py-2.5 font-semibold text-gray-900">Gita L.</td>
-                            <td class="py-2.5 text-right font-bold text-gray-900">144.000</td>
-                        </tr>
+                        @forelse($transaksiTerbaru as $trx)
+                            <tr class="hover:bg-gray-50/50">
+                                <td class="py-2.5 font-medium text-gray-500">{{ $trx->no_nota }}</td>
+                                <td class="py-2.5 font-semibold text-gray-900">{{ $trx->pelanggan->nama ?? 'Umum' }}</td>
+                                <td class="py-2.5 text-right font-bold text-gray-900">Rp {{ number_format($trx->total, 0, ',', '.') }}</td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="3" class="py-4 text-center text-gray-400">Belum ada transaksi</td>
+                            </tr>
+                        @endforelse
                     </tbody>
                 </table>
             </div>

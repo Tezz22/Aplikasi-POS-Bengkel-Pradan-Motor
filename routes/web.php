@@ -75,28 +75,33 @@ Route::post('/profil/password', function (Request $request) {
 
     return back()->with('status', 'Password berhasil diperbarui.');
 })->middleware('auth')->name('profile.password.update');
-Route::get('/registrasi',fn()=>view('pages.register'))->name('register');
+use App\Http\Controllers\AdminController;
+use App\Http\Controllers\KasirController;
+
+Route::get('/registrasi', fn () => view('pages.register'))->name('register');
+Route::get('/playground', fn () => view('pages.playground'))->name('playground');
+
 Route::prefix('kasir')->name('kasir.')->middleware('auth')->group(function () {
-    Route::get('/dashboard', fn () => view('pages.kasir.dashboard'))->name('dashboard');
-    Route::get('/transaksi', fn () => view('pages.kasir.transaksi'))->name('transaksi');
-    Route::get('/pelanggan', fn () => view('pages.kasir.pelanggan'))->name('pelanggan');
-    Route::get('/stok', fn () => view('pages.kasir.stok'))->name('stok');
-    Route::get('/riwayat', fn () => view('pages.kasir.riwayat'))->name('riwayat');
-    Route::get('/laporan', fn () => view('pages.kasir.laporan'))->name('laporan');
-    Route::get('/profil', fn () => view('pages.kasir.profil'))->name('profil');
+    Route::get('/dashboard', [KasirController::class, 'dashboard'])->name('dashboard');
+    Route::get('/transaksi', [KasirController::class, 'transaksi'])->name('transaksi');
+    Route::get('/pelanggan', [KasirController::class, 'pelanggan'])->name('pelanggan');
+    Route::get('/stok', [KasirController::class, 'stok'])->name('stok');
+    Route::get('/riwayat', [KasirController::class, 'riwayat'])->name('riwayat');
+    Route::get('/laporan', [KasirController::class, 'laporan'])->name('laporan');
+    Route::get('/profil', [KasirController::class, 'profil'])->name('profil');
 });
 
 Route::prefix('admin')->name('admin.')->middleware('auth')->group(function () {
-    Route::get('/dashboard', fn () => view('pages.admin.dashboard'))->name('dashboard');
-    Route::get('/pengguna', fn () => view('pages.admin.pengguna'))->name('pengguna');
-    Route::get('/barang', fn () => view('pages.admin.barang'))->name('barang');
-    Route::get('/kategori', fn () => view('pages.admin.kategori'))->name('kategori');
-    Route::get('/supplier', fn () => view('pages.admin.supplier'))->name('supplier');
-    Route::get('/layanan', fn () => view('pages.admin.layanan'))->name('layanan');
-    Route::get('/pelanggan', fn () => view('pages.admin.pelanggan'))->name('pelanggan');
-    Route::get('/barang-masuk', fn () => view('pages.admin.barang-masuk'))->name('barang-masuk');
-    Route::get('/stok-opname', fn () => view('pages.admin.stok-opname'))->name('stok-opname');
-    Route::get('/riwayat', fn () => view('pages.admin.riwayat'))->name('riwayat');
-    Route::get('/laporan', fn () => view('pages.admin.laporan'))->name('laporan');
-    Route::get('/profil', fn () => view('pages.admin.profil'))->name('profil');
+    Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('dashboard');
+    Route::get('/pengguna', [AdminController::class, 'pengguna'])->name('pengguna');
+    Route::get('/barang', [AdminController::class, 'barang'])->name('barang');
+    Route::get('/kategori', [AdminController::class, 'kategori'])->name('kategori');
+    Route::get('/supplier', [AdminController::class, 'supplier'])->name('supplier');
+    Route::get('/layanan', [AdminController::class, 'layanan'])->name('layanan');
+    Route::get('/pelanggan', [AdminController::class, 'pelanggan'])->name('pelanggan');
+    Route::get('/barang-masuk', [AdminController::class, 'barangMasuk'])->name('barang-masuk');
+    Route::get('/stok-opname', [AdminController::class, 'stokOpname'])->name('stok-opname');
+    Route::get('/riwayat', [AdminController::class, 'riwayat'])->name('riwayat');
+    Route::get('/laporan', [AdminController::class, 'laporan'])->name('laporan');
+    Route::get('/profil', [AdminController::class, 'profil'])->name('profil');
 });

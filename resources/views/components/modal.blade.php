@@ -52,7 +52,7 @@
             <button type="button" 
                     onclick="closeModal('{{ $id }}')" 
                     class="w-8 h-8 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 flex items-center justify-center transition-colors">
-                @include('components.icon', ['name' => 'close', 'size' => 16])
+                <x-icon name="close" :size="16" />
             </button>
         </div>
 
@@ -66,18 +66,12 @@
             @if(isset($footer) && $footer)
                 {!! $footer !!}
             @else
-                @include('components.button', [
-                    'variant' => 'secondary',
-                    'size'    => 'sm',
-                    'text'    => 'Batal',
-                    'onclick' => "closeModal('{$id}')"
-                ])
-                @include('components.button', [
-                    'variant' => 'primary',
-                    'size'    => 'sm',
-                    'type'    => isset($formAction) && $formAction ? 'submit' : 'button',
-                    'text'    => $submitText ?? 'Simpan',
-                ])
+                <x-button variant="secondary" size="sm" :onclick="'closeModal(\'' . $id . '\')'">
+                    Batal
+                </x-button>
+                <x-button variant="primary" size="sm" :type="isset($formAction) && $formAction ? 'submit' : 'button'">
+                    {{ $submitText ?? 'Simpan' }}
+                </x-button>
             @endif
         </div>
 

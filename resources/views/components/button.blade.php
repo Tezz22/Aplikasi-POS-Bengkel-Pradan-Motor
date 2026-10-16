@@ -42,7 +42,7 @@
         @if(isset($icon) && $icon)
             @include('components.icon', ['name' => $icon, 'size' => $calcIconSize])
         @endif
-        <span>{{ $slot ?? ($text ?? 'Tombol') }}</span>
+        <span>{{ (isset($slot) && $slot->isNotEmpty()) ? $slot : ($text ?? 'Tombol') }}</span>
     </a>
 @else
     <button type="{{ $type ?? 'button' }}" 
@@ -51,6 +51,6 @@
         @if(isset($icon) && $icon)
             @include('components.icon', ['name' => $icon, 'size' => $calcIconSize])
         @endif
-        <span>{{ $slot ?? ($text ?? 'Tombol') }}</span>
+        <span>{{ (isset($slot) && $slot->isNotEmpty()) ? $slot : ($text ?? 'Tombol') }}</span>
     </button>
 @endif
