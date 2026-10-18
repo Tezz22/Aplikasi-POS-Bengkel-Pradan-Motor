@@ -185,19 +185,22 @@
     </div>
 
     <!-- Right Actions: Tanggal & Logout -->
-    <div class="flex items-center gap-3 shrink-0">
-        <div class="hidden md:flex items-center gap-2 px-3 py-1.5 bg-gray-50 border border-gray-200/80 rounded-xl text-xs font-semibold text-gray-600">
-            <span class="text-gray-400 font-normal">Hari ini:</span>
-            <span>{{ \Carbon\Carbon::now()->translatedFormat('d M Y') }}</span>
-        </div>
+    <div class="topbar-actions">
+        <div class="flex items-center gap-3 shrink-0">
+            <div class="hidden md:flex items-center gap-2 px-3 py-1.5 bg-gray-50 border border-gray-200/80 rounded-xl text-xs font-semibold text-gray-600">
+                <span class="text-gray-400 font-normal">Hari ini:</span>
+                <span>{{ \Carbon\Carbon::now()->translatedFormat('d M Y') }}</span>
+            </div>
 
-        <form method="POST" action="{{ route('logout') }}" onsubmit="return confirm('Apakah Anda yakin ingin logout?');">
-            @csrf
-            <button type="submit" 
-                    title="Keluar / Logout" 
-                    class="w-9 h-9 rounded-xl flex items-center justify-center text-rose-500 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer">
-                @include('components.icon', ['name' => 'logout', 'size' => 20])
-            </button>
-        </form>
+            <form method="POST" action="{{ route('logout') }}" onsubmit="return confirm('Apakah Anda yakin ingin logout?');">
+                @csrf
+                <button type="submit" 
+                        title="Keluar / Logout" 
+                        class="w-9 h-9 rounded-xl flex items-center justify-center text-rose-500 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer">
+                    @include('components.icon', ['name' => 'logout', 'size' => 20])
+                    <span class="sr-only">Logout</span>
+                </button>
+            </form>
+        </div>
     </div>
 </header>

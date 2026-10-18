@@ -198,11 +198,8 @@
         <a href="{{ $isAdmin ? route('admin.profil') : route('kasir.profil') }}" 
            class="profile-link flex items-center gap-3 w-full group"
            title="{{ auth()->user()->name ?? ($isAdmin ? 'Tezzy' : 'Joo') }} ({{ ucfirst(auth()->user()->role ?? ($isAdmin ? 'Admin' : 'Kasir')) }})">
-            <div class="relative shrink-0">
-                <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&h=100&fit=crop&crop=faces" 
-                     alt="Avatar" 
-                     class="w-10 h-10 rounded-full object-cover ring-2 ring-blue-500/30 group-hover:ring-blue-400 transition-all">
-                <span class="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-500 rounded-full ring-2 ring-[#182033]"></span>
+            <div class="w-9 h-9 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-slate-300 group-hover:bg-blue-600 group-hover:text-white group-hover:border-blue-500 transition-all shadow-xs shrink-0">
+                @include('components.icon', ['name' => 'user', 'size' => 18])
             </div>
             <div class="sidebar-text flex-1 min-w-0">
                 <p class="text-sm font-semibold text-white truncate group-hover:text-blue-300 transition-colors">
