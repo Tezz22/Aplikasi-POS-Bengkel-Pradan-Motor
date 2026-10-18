@@ -8,11 +8,20 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Kategori extends Model
 {
     protected $table = 'ms_kategori';
+    protected $primaryKey = 'id_kategori';
+    public $timestamps = false;
 
-    protected $guarded = ['id'];
+    protected $fillable = [
+        'nama_kategori',
+    ];
+
+    public function getIdAttribute()
+    {
+        return $this->id_kategori;
+    }
 
     public function barang(): HasMany
     {
-        return $this->hasMany(Barang::class, 'kategori_id');
+        return $this->hasMany(Barang::class, 'id_kategori', 'id_kategori');
     }
 }

@@ -5,28 +5,26 @@
 @section('content')
     <x-page-header 
         title="Riwayat Transaksi Kasir" 
-        subtitle="Daftar transaksi penjualan dan servis yang Anda layani" 
+        subtitle="Daftar transaksi penjualan dan servis yang dilayani bengkel" 
         icon="riwayat" 
     />
 
     <x-table 
         id="table-riwayat-kasir" 
         :searchable="true" 
-        searchPlaceholder="Cari no nota..." 
-        :headers="['NO. NOTA', 'TANGGAL', 'PELANGGAN', 'TOTAL', 'METODE', 'STATUS', 'AKSI']"
+        searchPlaceholder="Cari no transaksi atau pelanggan..." 
+        :headers="['NO. TRANSAKSI', 'TANGGAL & WAKTU', 'PELANGGAN', 'TOTAL', 'NOMINAL BAYAR', 'KEMBALIAN', 'AKSI']"
     >
         @forelse($transaksis as $trx)
             <tr class="hover:bg-slate-50/70 transition-colors">
-                <td class="py-3.5 px-4 first:pl-6 font-bold text-gray-900">{{ $trx->no_faktur }}</td>
-                <td class="py-3.5 px-4 text-gray-600">{{ \Carbon\Carbon::parse($trx->tanggal)->format('d M Y, H:i') }}</td>
-                <td class="py-3.5 px-4 font-semibold text-gray-900">{{ $trx->pelanggan->nama ?? ($trx->nama_pelanggan_non_member ?? 'Umum') }}</td>
+                <td class="py-3.5 px-4 first:pl-6 font-bold text-gray-900">{{ $trx->no_transaksi }}</td>
+                <td class="py-3.5 px-4 text-gray-600">{{ \Carbon\Carbon::parse($trx->tanggal)->translatedFormat('d M Y, H:i') }}</td>
+                <td class="py-3.5 px-4 font-semibold text-gray-900">{{ $trx->pelanggan->nama ?? 'Pelanggan Umum' }}</td>
                 <td class="py-3.5 px-4 font-bold text-gray-900">Rp {{ number_format($trx->total, 0, ',', '.') }}</td>
-                <td class="py-3.5 px-4 text-gray-600">{{ $trx->metode_pembayaran }}</td>
-                <td class="py-3.5 px-4">
-                    <x-badge :type="$trx->status === 'Lunas' ? 'success' : 'warning'" :text="$trx->status" />
-                </td>
+                <td class="py-3.5 px-4 text-gray-600">Rp {{ number_format($trx->nominal_bayar, 0, ',', '.') }}</td>
+                <td class="py-3.5 px-4 font-semibold text-emerald-600">Rp {{ number_format($trx->kembalian ?? 0, 0, ',', '.') }}</td>
                 <td class="py-3.5 px-4 last:pr-6">
-                    <x-button-action type="print" onclick="alert('Cetak ulang struk {{ $trx->no_faktur }}')" />
+                    <x-button-action type="print" :onclick="'alert(\'Mencetak struk ' . $trx->no_transaksi . '...\')'" />
                 </td>
             </tr>
         @empty

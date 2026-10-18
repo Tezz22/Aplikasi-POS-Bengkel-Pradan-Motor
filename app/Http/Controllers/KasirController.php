@@ -18,25 +18,25 @@ class KasirController extends Controller
         $userId = Auth::id();
         $today = Carbon::today();
 
-        $transaksiKasirCount = Penjualan::where('user_id', $userId)->count();
-        $pendapatanKasir = Penjualan::where('user_id', $userId)->where('status', 'Lunas')->sum('total');
+        $transaksiKasirCount = Penjualan::where('id_user', $userId)->count();
+        $pendapatanKasir = Penjualan::where('id_user', $userId)->sum('total');
         if ($pendapatanKasir == 0) {
-            $pendapatanKasir = Penjualan::where('status', 'Lunas')->sum('total');
+            $pendapatanKasir = Penjualan::sum('total');
         }
 
-        $jasaSelesai = PenjualanDetail::where('tipe', 'jasa')->count();
+        $jasaSelesai = PenjualanDetail::where('jenis_item', 'jasa')->count();
         $stokKritis = Barang::where('stok', '<=', 10)->count();
 
         $transaksiTerbaru = Penjualan::with('pelanggan')
             ->where(function ($q) use ($userId) {
-                $q->where('user_id', $userId)->orWhereNull('user_id');
+                $q->where('id_user', $userId)->orWhereNull('id_user');
             })
-            ->latest('tanggal')
+            ->orderBy('tanggal', 'desc')
             ->take(5)
             ->get();
 
         if ($transaksiTerbaru->isEmpty()) {
-            $transaksiTerbaru = Penjualan::with('pelanggan')->latest('tanggal')->take(5)->get();
+            $transaksiTerbaru = Penjualan::with('pelanggan')->orderBy('tanggal', 'desc')->take(5)->get();
         }
 
         return view('pages.kasir.dashboard', compact(
@@ -50,23 +50,23 @@ class KasirController extends Controller
 
     public function transaksi()
     {
-        $barangs = Barang::with('kategori')->get();
-        $jasas = Jasa::where('status', 'Tersedia')->get();
-        $pelanggans = Pelanggan::all();
+        $barangs = Barang::with('kategori')->orderBy('nama_barang')->get();
+        $jasas = Jasa::orderBy('nama_jasa')->get();
+        $pelanggans = Pelanggan::orderBy('nama')->get();
 
         return view('pages.kasir.transaksi', compact('barangs', 'jasas', 'pelanggans'));
     }
 
     public function pelanggan()
     {
-        $pelanggans = Pelanggan::latest()->get();
+        $pelanggans = Pelanggan::orderBy('id_pelanggan', 'desc')->get();
 
         return view('pages.kasir.pelanggan', compact('pelanggans'));
     }
 
     public function stok()
     {
-        $barangs = Barang::with('kategori')->latest()->get();
+        $barangs = Barang::with('kategori')->orderBy('id_barang', 'desc')->get();
 
         return view('pages.kasir.stok', compact('barangs'));
     }
@@ -74,7 +74,7 @@ class KasirController extends Controller
     public function riwayat()
     {
         $transaksis = Penjualan::with(['pelanggan', 'user', 'details'])
-            ->latest('tanggal')
+            ->orderBy('tanggal', 'desc')
             ->get();
 
         return view('pages.kasir.riwayat', compact('transaksis'));
@@ -82,14 +82,15 @@ class KasirController extends Controller
 
     public function laporan()
     {
-        $rekapMetode = Penjualan::selectRaw('metode_pembayaran, COUNT(*) as jml_transaksi, SUM(total) as total_nominal')
-            ->groupBy('metode_pembayaran')
+        $rekapHarian = Penjualan::selectRaw('DATE(tanggal) as tgl, COUNT(*) as jml_transaksi, SUM(total) as total_nominal')
+            ->groupBy('tgl')
+            ->orderBy('tgl', 'desc')
             ->get();
 
         $totalSetoran = Penjualan::sum('total');
         $totalTransaksi = Penjualan::count();
 
-        return view('pages.kasir.laporan', compact('rekapMetode', 'totalSetoran', 'totalTransaksi'));
+        return view('pages.kasir.laporan', compact('rekapHarian', 'totalSetoran', 'totalTransaksi'));
     }
 
     public function profil()

@@ -103,4 +103,51 @@ class ExampleTest extends TestCase
 
         $this->assertTrue(password_verify('password', $user->fresh()->password));
     }
+
+    public function test_all_admin_pages_render_successfully(): void
+    {
+        $this->seed();
+        $admin = User::where('role', 'admin')->first();
+
+        $routes = [
+            'admin.dashboard',
+            'admin.pengguna',
+            'admin.barang',
+            'admin.kategori',
+            'admin.supplier',
+            'admin.layanan',
+            'admin.pelanggan',
+            'admin.barang-masuk',
+            'admin.stok-opname',
+            'admin.riwayat',
+            'admin.laporan',
+            'admin.profil',
+        ];
+
+        foreach ($routes as $route) {
+            $response = $this->actingAs($admin)->get(route($route));
+            $response->assertOk();
+        }
+    }
+
+    public function test_all_cashier_pages_render_successfully(): void
+    {
+        $this->seed();
+        $cashier = User::where('role', 'kasir')->first();
+
+        $routes = [
+            'kasir.dashboard',
+            'kasir.transaksi',
+            'kasir.pelanggan',
+            'kasir.stok',
+            'kasir.riwayat',
+            'kasir.laporan',
+            'kasir.profil',
+        ];
+
+        foreach ($routes as $route) {
+            $response = $this->actingAs($cashier)->get(route($route));
+            $response->assertOk();
+        }
+    }
 }

@@ -10,7 +10,7 @@ class SupplierController extends Controller
 {
     public function index()
     {
-        $suppliers = Supplier::withCount('pembelian')->latest()->get();
+        $suppliers = Supplier::withCount('pembelian')->orderBy('id_supplier', 'desc')->get();
 
         return view('pages.admin.supplier', compact('suppliers'));
     }
@@ -18,15 +18,14 @@ class SupplierController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'kode_supplier' => ['required', 'string', 'max:50', 'unique:ms_supplier,kode_supplier'],
-            'nama_supplier' => ['required', 'string', 'max:150'],
-            'no_telp'       => ['nullable', 'string', 'max:50'],
-            'kontak_person' => ['nullable', 'string', 'max:100'],
-            'alamat'        => ['nullable', 'string'],
+            'nama_supplier' => ['required', 'string', 'max:50'],
+            'no_telepon'   => ['nullable', 'string', 'max:15'],
+            'alamat'        => ['nullable', 'string', 'max:255'],
         ], [
-            'kode_supplier.required' => 'Kode supplier wajib diisi.',
-            'kode_supplier.unique'   => 'Kode supplier sudah digunakan.',
-            'nama_supplier.required' => 'Nama supplier / perusahaan wajib diisi.',
+            'nama_supplier.required' => 'Nama supplier / distributor wajib diisi.',
+            'nama_supplier.max'      => 'Nama supplier maksimal 50 karakter.',
+            'no_telepon.max'         => 'Nomor telepon maksimal 15 karakter.',
+            'alamat.max'             => 'Alamat maksimal 255 karakter.',
         ]);
 
         Supplier::create($validated);
@@ -37,15 +36,14 @@ class SupplierController extends Controller
     public function update(Request $request, Supplier $supplier)
     {
         $validated = $request->validate([
-            'kode_supplier' => ['required', 'string', 'max:50', 'unique:ms_supplier,kode_supplier,' . $supplier->id],
-            'nama_supplier' => ['required', 'string', 'max:150'],
-            'no_telp'       => ['nullable', 'string', 'max:50'],
-            'kontak_person' => ['nullable', 'string', 'max:100'],
-            'alamat'        => ['nullable', 'string'],
+            'nama_supplier' => ['required', 'string', 'max:50'],
+            'no_telepon'   => ['nullable', 'string', 'max:15'],
+            'alamat'        => ['nullable', 'string', 'max:255'],
         ], [
-            'kode_supplier.required' => 'Kode supplier wajib diisi.',
-            'kode_supplier.unique'   => 'Kode supplier sudah digunakan.',
-            'nama_supplier.required' => 'Nama supplier / perusahaan wajib diisi.',
+            'nama_supplier.required' => 'Nama supplier / distributor wajib diisi.',
+            'nama_supplier.max'      => 'Nama supplier maksimal 50 karakter.',
+            'no_telepon.max'         => 'Nomor telepon maksimal 15 karakter.',
+            'alamat.max'             => 'Alamat maksimal 255 karakter.',
         ]);
 
         $supplier->update($validated);

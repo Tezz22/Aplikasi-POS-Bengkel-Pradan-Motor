@@ -17,15 +17,14 @@
         id="table-supplier" 
         :searchable="true" 
         searchPlaceholder="Cari supplier..." 
-        :headers="['KODE', 'NAMA SUPPLIER', 'NO. TELEPON', 'ALAMAT', 'KONTAK PERSON', 'AKSI']"
+        :headers="['ID', 'NAMA SUPPLIER', 'NO. TELEPON', 'ALAMAT', 'AKSI']"
     >
         @forelse($suppliers as $supplier)
             <tr class="hover:bg-slate-50/70 transition-colors">
-                <td class="py-3.5 px-4 first:pl-6 font-bold text-gray-900">{{ $supplier->kode_supplier }}</td>
+                <td class="py-3.5 px-4 first:pl-6 font-bold text-gray-500">#{{ $supplier->id_supplier }}</td>
                 <td class="py-3.5 px-4 font-semibold text-gray-900">{{ $supplier->nama_supplier }}</td>
-                <td class="py-3.5 px-4 text-gray-600">{{ $supplier->no_telp ?? '-' }}</td>
+                <td class="py-3.5 px-4 text-gray-600">{{ $supplier->no_telepon ?? '-' }}</td>
                 <td class="py-3.5 px-4 text-gray-500">{{ $supplier->alamat ?? '-' }}</td>
-                <td class="py-3.5 px-4 font-medium text-gray-800">{{ $supplier->kontak_person ?? '-' }}</td>
                 <td class="py-3.5 px-4 last:pr-6">
                     <div class="flex items-center gap-1">
                         <x-button-action type="edit" onclick="openModal('modal-edit-supplier')" />
@@ -35,7 +34,7 @@
             </tr>
         @empty
             <tr>
-                <td colspan="6" class="py-8 text-center text-gray-400">Belum ada data supplier</td>
+                <td colspan="5" class="py-8 text-center text-gray-400">Belum ada data supplier</td>
             </tr>
         @endforelse
     </x-table>
@@ -46,12 +45,8 @@
         title="Tambah Supplier Baru" 
         subtitle="Masukkan data perusahaan atau distributor pemasok barang"
     >
-        <x-input label="Kode Supplier" name="kode_supplier" :value="'SPL-' . str_pad(($suppliers->count() + 1), 2, '0', STR_PAD_LEFT)" :required="true" />
-        <x-input label="Nama Supplier / Perusahaan" name="nama_supplier" placeholder="Contoh: PT Astra Otoparts Tbk" :required="true" />
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <x-input label="No. Telepon Kantor" name="no_telp" placeholder="021-xxxxxx" />
-            <x-input label="Kontak Person (PIC)" name="kontak_person" placeholder="Nama & No HP PIC" />
-        </div>
-        <x-input label="Alamat Kantor / Gudang" name="alamat" placeholder="Alamat lengkap" />
+        <x-input label="Nama Supplier / Distributor" name="nama_supplier" placeholder="Contoh: PT Astra Otoparts Tbk (Maks. 50 Karakter)" maxlength="50" :required="true" />
+        <x-input label="No. Telepon" name="no_telepon" placeholder="Contoh: 021-4603888 (Maks. 15 Karakter)" maxlength="15" />
+        <x-input label="Alamat Kantor / Gudang" name="alamat" placeholder="Alamat lengkap supplier" maxlength="255" />
     </x-modal>
 @endsection

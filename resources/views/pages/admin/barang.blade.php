@@ -19,15 +19,12 @@
         id="table-barang" 
         :searchable="true" 
         searchPlaceholder="Cari data barang..." 
-        :headers="['KODE', 'NAMA PRODUK', 'KATEGORI', 'SATUAN', 'HARGA JUAL', 'STOK', 'AKSI']"
+        :headers="['ID', 'NAMA PRODUK', 'KATEGORI', 'SATUAN', 'HARGA JUAL', 'STOK', 'AKSI']"
     >
         @forelse($barangs as $barang)
             <tr class="hover:bg-slate-50/70 transition-colors">
-                <td class="py-3.5 px-4 first:pl-6">
-                    <span class="font-bold text-gray-900 block">{{ $barang->kode_barang }}</span>
-                    @if($barang->barcode)
-                        <span class="text-[10px] text-gray-400">{{ $barang->barcode }}</span>
-                    @endif
+                <td class="py-3.5 px-4 first:pl-6 font-bold text-gray-500">
+                    #{{ $barang->id_barang }}
                 </td>
                 <td class="py-3.5 px-4 font-semibold text-gray-900">{{ $barang->nama_barang }}</td>
                 <td class="py-3.5 px-4 text-gray-600">{{ $barang->kategori->nama_kategori ?? '-' }}</td>
@@ -58,21 +55,17 @@
         title="Tambah Barang Baru" 
         subtitle="Masukkan informasi barang atau sparepart baru ke inventaris"
     >
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <x-input label="Kode Barang" name="kode_barang" :value="'BRG-' . str_pad(($barangs->count() + 1), 3, '0', STR_PAD_LEFT)" :required="true" />
-            <x-input label="Barcode / SKU" name="barcode" placeholder="Scan barcode jika ada" />
-        </div>
-        <x-input label="Nama Barang" name="nama_barang" placeholder="Contoh: Filter Udara Honda Vario" :required="true" />
+        <x-input label="Nama Barang" name="nama_barang" placeholder="Contoh: Oli MPX2 0.8L Matic (Maks. 30 Karakter)" maxlength="30" :required="true" />
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <x-select 
                 label="Kategori" 
-                name="kategori_id" 
-                :options="$kategoris->pluck('nama_kategori', 'id')->toArray()" 
+                name="id_kategori" 
+                :options="$kategoris->pluck('nama_kategori', 'id_kategori')->toArray()" 
+                :required="true"
             />
-            <x-input label="Satuan" name="satuan" placeholder="Pcs, Botol, Set" value="Pcs" />
+            <x-input label="Satuan" name="satuan" placeholder="Botol, Pcs, Set (Maks. 20 Karakter)" maxlength="20" value="Pcs" :required="true" />
         </div>
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <x-input label="Harga Beli (Rp)" name="harga_beli" type="number" placeholder="0" />
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <x-input label="Harga Jual (Rp)" name="harga_jual" type="number" placeholder="0" :required="true" />
             <x-input label="Stok Awal" name="stok" type="number" placeholder="0" :required="true" />
         </div>

@@ -15,7 +15,6 @@ use App\Models\Opname;
 use App\Models\OpnameDetail;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 
 class AdminController extends Controller
 {
@@ -24,10 +23,9 @@ class AdminController extends Controller
         $today = Carbon::today();
 
         // Metrik Ringkasan
-        $pendapatanHariIni = Penjualan::whereDate('tanggal', $today)->where('status', 'Lunas')->sum('total');
+        $pendapatanHariIni = Penjualan::whereDate('tanggal', $today)->sum('total');
         if ($pendapatanHariIni == 0) {
-            // Jika tanggal seeder berbeda, tampilkan total terkini
-            $pendapatanHariIni = Penjualan::where('status', 'Lunas')->sum('total');
+            $pendapatanHariIni = Penjualan::sum('total');
         }
 
         $totalTransaksiHariIni = Penjualan::whereDate('tanggal', $today)->count();
@@ -35,8 +33,8 @@ class AdminController extends Controller
             $totalTransaksiHariIni = Penjualan::count();
         }
 
-        $produkTerjual = PenjualanDetail::where('tipe', 'barang')->sum('qty');
-        $rataRata = Penjualan::where('status', 'Lunas')->avg('total') ?? 0;
+        $produkTerjual = PenjualanDetail::where('jenis_item', 'barang')->sum('qty');
+        $rataRata = Penjualan::avg('total') ?? 0;
 
         $stokMenipis = Barang::where('stok', '<=', 10)->count();
         $totalBarang = Barang::count();
@@ -44,7 +42,7 @@ class AdminController extends Controller
 
         // Status Transaksi Terbaru
         $transaksiTerbaru = Penjualan::with('pelanggan')
-            ->latest('tanggal')
+            ->orderBy('tanggal', 'desc')
             ->take(7)
             ->get();
 
@@ -62,64 +60,64 @@ class AdminController extends Controller
 
     public function barang()
     {
-        $barangs = Barang::with('kategori')->latest()->get();
-        $kategoris = Kategori::all();
+        $barangs = Barang::with('kategori')->orderBy('id_barang', 'desc')->get();
+        $kategoris = Kategori::orderBy('nama_kategori')->get();
 
         return view('pages.admin.barang', compact('barangs', 'kategoris'));
     }
 
     public function kategori()
     {
-        $kategoris = Kategori::withCount('barang')->latest()->get();
+        $kategoris = Kategori::withCount('barang')->orderBy('id_kategori', 'desc')->get();
 
         return view('pages.admin.kategori', compact('kategoris'));
     }
 
     public function supplier()
     {
-        $suppliers = Supplier::latest()->get();
+        $suppliers = Supplier::orderBy('id_supplier', 'desc')->get();
 
         return view('pages.admin.supplier', compact('suppliers'));
     }
 
     public function layanan()
     {
-        $layanans = Jasa::latest()->get();
+        $layanans = Jasa::orderBy('id_jasa', 'desc')->get();
 
         return view('pages.admin.layanan', compact('layanans'));
     }
 
     public function pelanggan()
     {
-        $pelanggans = Pelanggan::withCount('penjualan')->latest()->get();
+        $pelanggans = Pelanggan::withCount('penjualan')->orderBy('id_pelanggan', 'desc')->get();
 
         return view('pages.admin.pelanggan', compact('pelanggans'));
     }
 
     public function pengguna()
     {
-        $users = User::latest()->get();
+        $users = User::orderBy('id_user', 'desc')->get();
 
         return view('pages.admin.pengguna', compact('users'));
     }
 
     public function barangMasuk()
     {
-        $pembelians = Pembelian::with(['supplier', 'user', 'details.barang'])->latest('tanggal')->get();
-        $suppliers = Supplier::all();
-        $barangs = Barang::all();
+        $pembelians = Pembelian::with(['supplier', 'user', 'barang'])->orderBy('tanggal', 'desc')->get();
+        $suppliers = Supplier::orderBy('nama_supplier')->get();
+        $barangs = Barang::orderBy('nama_barang')->get();
 
         return view('pages.admin.barang-masuk', compact('pembelians', 'suppliers', 'barangs'));
     }
 
     public function stokOpname()
     {
-        $opnames = Opname::with(['supplier', 'user', 'details.barang'])->latest('tanggal')->get();
+        $opnames = Opname::with(['user', 'details.barang'])->orderBy('tanggal', 'desc')->get();
         $totalPembelian = Pembelian::count();
         $itemDiperiksa = OpnameDetail::count();
-        $itemSelisih = OpnameDetail::where('selisih', '!=', 0)->count();
+        $itemSelisih = OpnameDetail::whereRaw('stok_fisik != stok_sistem')->count();
         $totalSupplier = Supplier::count();
-        $kategoris = Kategori::all();
+        $kategoris = Kategori::orderBy('nama_kategori')->get();
 
         return view('pages.admin.stok-opname', compact(
             'opnames',
@@ -134,7 +132,7 @@ class AdminController extends Controller
     public function riwayat()
     {
         $transaksis = Penjualan::with(['pelanggan', 'user', 'details.barang', 'details.jasa'])
-            ->latest('tanggal')
+            ->orderBy('tanggal', 'desc')
             ->get();
 
         return view('pages.admin.riwayat', compact('transaksis'));
@@ -144,8 +142,8 @@ class AdminController extends Controller
     {
         // Rekap transaksi per tanggal dan kasir
         $laporans = Penjualan::with('user')
-            ->selectRaw('DATE(tanggal) as tgl, user_id, COUNT(*) as jml_transaksi, SUM(total) as total_penjualan')
-            ->groupBy('tgl', 'user_id')
+            ->selectRaw('DATE(tanggal) as tgl, id_user, COUNT(*) as jml_transaksi, SUM(total) as total_penjualan')
+            ->groupBy('tgl', 'id_user')
             ->orderBy('tgl', 'desc')
             ->get();
 

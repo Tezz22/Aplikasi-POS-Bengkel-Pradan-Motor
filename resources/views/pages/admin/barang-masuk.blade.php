@@ -6,7 +6,7 @@
     {{-- Page Header --}}
     <x-page-header 
         title="Barang Masuk" 
-        subtitle="Kelola inventaris barang masuk dari supplier Pradan Motor" 
+        subtitle="Kelola inventaris pembelian dan pasokan suku cadang dari supplier" 
         icon="barang-masuk"
     >
         <x-slot:actions>
@@ -18,24 +18,27 @@
     <x-table 
         id="table-barang-masuk" 
         :searchable="true" 
-        searchPlaceholder="Cari kode, tanggal, atau supplier...." 
-        :headers="['KODE', 'TANGGAL', 'SUPPLIER', 'ITEM', 'TOTAL HARGA', 'DICATAT OLEH', 'AKSI']"
+        searchPlaceholder="Cari no. referensi, tanggal, atau supplier...." 
+        :headers="['NO. REFERENSI', 'TANGGAL', 'SUPPLIER', 'BARANG', 'JUMLAH', 'HARGA BELI', 'SUBTOTAL', 'DICATAT OLEH']"
     >
         @forelse($pembelians as $pembelian)
             <tr class="hover:bg-slate-50/70 transition-colors">
-                <td class="py-3.5 px-4 first:pl-6 font-bold text-gray-900">{{ $pembelian->kode_masuk }}</td>
-                <td class="py-3.5 px-4 text-gray-600">{{ \Carbon\Carbon::parse($pembelian->tanggal)->translatedFormat('d F Y') }}</td>
+                <td class="py-3.5 px-4 first:pl-6 font-bold text-gray-900">{{ $pembelian->no_referensi }}</td>
+                <td class="py-3.5 px-4 text-gray-600">{{ \Carbon\Carbon::parse($pembelian->tanggal)->translatedFormat('d M Y') }}</td>
                 <td class="py-3.5 px-4 font-medium text-gray-800">{{ $pembelian->supplier->nama_supplier ?? '-' }}</td>
-                <td class="py-3.5 px-4 text-gray-600">{{ $pembelian->details->sum('qty') }}</td>
-                <td class="py-3.5 px-4 font-medium text-gray-900">Rp {{ number_format($pembelian->total_harga, 0, ',', '.') }}</td>
-                <td class="py-3.5 px-4 text-gray-500">{{ $pembelian->user->name ?? 'Admin' }}</td>
-                <td class="py-3.5 px-4 last:pr-6">
-                    <x-button-action type="info" onclick="openModal('modal-detail-bm-{{ $pembelian->id }}')" />
+                <td class="py-3.5 px-4 font-semibold text-gray-900">{{ $pembelian->barang->nama_barang ?? '-' }}</td>
+                <td class="py-3.5 px-4">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-slate-100 text-slate-800">
+                        {{ $pembelian->jumlah }} {{ $pembelian->barang->satuan ?? 'Pcs' }}
+                    </span>
                 </td>
+                <td class="py-3.5 px-4 text-gray-600">Rp {{ number_format($pembelian->harga_beli, 0, ',', '.') }}</td>
+                <td class="py-3.5 px-4 font-bold text-emerald-600">Rp {{ number_format($pembelian->subtotal, 0, ',', '.') }}</td>
+                <td class="py-3.5 px-4 last:pr-6 text-gray-500">{{ $pembelian->user->nama ?? $pembelian->user->name ?? 'Admin' }}</td>
             </tr>
         @empty
             <tr>
-                <td colspan="7" class="py-8 text-center text-gray-400">Belum ada data barang masuk</td>
+                <td colspan="8" class="py-8 text-center text-gray-400">Belum ada data barang masuk</td>
             </tr>
         @endforelse
     </x-table>
@@ -48,29 +51,27 @@
         size="lg"
     >
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <x-input label="No. Bukti / Kode Masuk" name="kode_masuk" :value="'BM-' . str_pad(($pembelians->count() + 1), 3, '0', STR_PAD_LEFT)" :required="true" />
+            <x-input label="No. Referensi" name="no_referensi" :value="'REF-' . date('Ym') . '-' . str_pad(($pembelians->count() + 1), 3, '0', STR_PAD_LEFT)" maxlength="25" :required="true" />
             <x-input label="Tanggal Masuk" name="tanggal" type="date" :value="date('Y-m-d')" :required="true" />
         </div>
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <x-select 
                 label="Supplier" 
-                name="supplier_id" 
-                :options="$suppliers->pluck('nama_supplier', 'id')->toArray()" 
+                name="id_supplier" 
+                :options="$suppliers->pluck('nama_supplier', 'id_supplier')->toArray()" 
+                :required="true"
             />
-            <x-input label="No. Surat Jalan / Faktur" name="no_faktur" placeholder="Opsional" />
+            <x-select 
+                label="Pilih Barang" 
+                name="id_barang" 
+                :options="$barangs->pluck('nama_barang', 'id_barang')->toArray()" 
+                :required="true"
+            />
         </div>
-        <div class="p-3 bg-gray-50 rounded-xl border border-gray-100">
-            <h4 class="font-bold text-xs text-gray-800 mb-2">Item Barang Diterima</h4>
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                <x-select 
-                    label="Pilih Barang" 
-                    name="barang_id" 
-                    :options="$barangs->pluck('nama_barang', 'id')->toArray()" 
-                />
-                <x-input label="Jumlah Masuk" name="qty" type="number" placeholder="0" />
-                <x-input label="Harga Beli Satuan" name="harga_beli" type="number" placeholder="0" />
-            </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <x-input label="Jumlah Masuk" name="jumlah" type="number" placeholder="0" :required="true" />
+            <x-input label="Harga Beli Satuan (Rp)" name="harga_beli" type="number" placeholder="0" :required="true" />
         </div>
-        <x-input label="Catatan Tambahan" name="catatan" placeholder="Keterangan kondisi barang, dll" />
+        <x-input label="Keterangan Tambahan" name="keterangan" placeholder="Keterangan pasokan atau kondisi barang (Maks. 255 Karakter)" maxlength="255" />
     </x-modal>
 @endsection

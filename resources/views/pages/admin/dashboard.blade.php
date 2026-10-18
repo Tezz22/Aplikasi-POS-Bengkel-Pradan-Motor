@@ -146,7 +146,7 @@
                     <tbody class="divide-y divide-gray-50 text-gray-700">
                         @forelse($transaksiTerbaru as $trx)
                             <tr class="hover:bg-gray-50/50">
-                                <td class="py-2.5 font-medium text-gray-500">{{ $trx->no_nota }}</td>
+                                <td class="py-2.5 font-medium text-gray-500">{{ $trx->no_transaksi }}</td>
                                 <td class="py-2.5 font-semibold text-gray-900">{{ $trx->pelanggan->nama ?? 'Umum' }}</td>
                                 <td class="py-2.5 text-right font-bold text-gray-900">Rp {{ number_format($trx->total, 0, ',', '.') }}</td>
                             </tr>

@@ -17,18 +17,17 @@
         id="table-kategori" 
         :searchable="true" 
         searchPlaceholder="Cari kategori..." 
-        :headers="['KODE', 'NAMA KATEGORI', 'JUMLAH ITEM', 'DESKRIPSI', 'AKSI']"
+        :headers="['ID', 'NAMA KATEGORI', 'JUMLAH ITEM', 'AKSI']"
     >
         @forelse($kategoris as $kategori)
             <tr class="hover:bg-slate-50/70 transition-colors">
-                <td class="py-3.5 px-4 first:pl-6 font-bold text-gray-900">{{ $kategori->kode_kategori }}</td>
+                <td class="py-3.5 px-4 first:pl-6 font-bold text-gray-500">#{{ $kategori->id_kategori }}</td>
                 <td class="py-3.5 px-4 font-semibold text-gray-900">{{ $kategori->nama_kategori }}</td>
                 <td class="py-3.5 px-4">
                     <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-50 text-blue-700">
                         {{ $kategori->barang_count ?? $kategori->barang()->count() }} Item
                     </span>
                 </td>
-                <td class="py-3.5 px-4 text-gray-500">{{ $kategori->deskripsi ?? '-' }}</td>
                 <td class="py-3.5 px-4 last:pr-6">
                     <div class="flex items-center gap-1">
                         <x-button-action type="edit" onclick="openModal('modal-edit-kategori')" />
@@ -38,7 +37,7 @@
             </tr>
         @empty
             <tr>
-                <td colspan="5" class="py-8 text-center text-gray-400">Belum ada data kategori</td>
+                <td colspan="4" class="py-8 text-center text-gray-400">Belum ada data kategori</td>
             </tr>
         @endforelse
     </x-table>
@@ -49,8 +48,6 @@
         title="Tambah Kategori Barang" 
         subtitle="Buat kategori baru untuk pengelompokan suku cadang"
     >
-        <x-input label="Kode Kategori" name="kode_kategori" :value="'KTG-' . str_pad(($kategoris->count() + 1), 2, '0', STR_PAD_LEFT)" :required="true" />
-        <x-input label="Nama Kategori" name="nama_kategori" placeholder="Contoh: Ban Luar & Dalam" :required="true" />
-        <x-input label="Deskripsi Kategori" name="deskripsi" placeholder="Keterangan opsional" />
+        <x-input label="Nama Kategori" name="nama_kategori" placeholder="Contoh: Ban & Roda (Maks. 25 Karakter)" maxlength="25" :required="true" />
     </x-modal>
 @endsection

@@ -9,7 +9,7 @@ class LayananController extends Controller
 {
     public function index()
     {
-        $layanans = Jasa::latest()->get();
+        $layanans = Jasa::orderBy('id_jasa', 'desc')->get();
 
         return view('pages.admin.layanan', compact('layanans'));
     }

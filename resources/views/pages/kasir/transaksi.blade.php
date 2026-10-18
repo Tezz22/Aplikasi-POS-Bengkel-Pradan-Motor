@@ -31,11 +31,11 @@
                     <div class="pos-item p-3.5 rounded-xl border border-gray-100 hover:border-blue-300 hover:bg-blue-50/20 transition-all flex flex-col justify-between" data-type="barang" data-name="{{ strtolower($barang->nama_barang) }}">
                         <div>
                             <div class="flex items-center justify-between">
-                                <span class="text-[10px] font-bold uppercase tracking-wider text-blue-500 bg-blue-50 px-2 py-0.5 rounded-md">{{ $barang->kategori->nama_kategori ?? 'Barang' }}</span>
-                                <span class="text-[10px] {{ $barang->stok <= 5 ? 'text-rose-500 font-bold' : 'text-gray-400' }}">Stok: {{ $barang->stok }}</span>
+                                <span class="text-[10px] font-bold uppercase tracking-wider text-blue-500 bg-blue-50 px-2 py-0.5 rounded-md">{{ $barang->kategori->nama_kategori ?? 'Suku Cadang' }}</span>
+                                <span class="text-[10px] {{ $barang->stok <= 5 ? 'text-rose-500 font-bold' : 'text-gray-400' }}">Stok: {{ $barang->stok }} {{ $barang->satuan }}</span>
                             </div>
                             <h4 class="font-bold text-gray-900 text-xs mt-2">{{ $barang->nama_barang }}</h4>
-                            <p class="text-[11px] text-gray-400">{{ $barang->kode_barang }}</p>
+                            <p class="text-[11px] text-gray-400 font-medium">#{{ $barang->id_barang }} &bull; {{ $barang->satuan }}</p>
                         </div>
                         <div class="flex items-center justify-between mt-3 pt-2 border-t border-gray-50">
                             <span class="font-bold text-gray-900 text-sm">Rp {{ number_format($barang->harga_jual, 0, ',', '.') }}</span>
@@ -44,7 +44,7 @@
                                 variant="primary" 
                                 icon="plus" 
                                 text="Tambah" 
-                                onclick="alert('Ditambahkan {{ $barang->nama_barang }} ke keranjang')" 
+                                :onclick="'alert(\'Ditambahkan ' . addslashes($barang->nama_barang) . ' ke transaksi\')'" 
                             />
                         </div>
                     </div>
@@ -56,10 +56,10 @@
                         <div>
                             <div class="flex items-center justify-between">
                                 <span class="text-[10px] font-bold uppercase tracking-wider text-emerald-500 bg-emerald-50 px-2 py-0.5 rounded-md">Jasa Servis</span>
-                                <span class="text-[10px] text-gray-400">{{ $jasa->estimasi_menit ?? '30' }} Menit</span>
+                                <span class="text-[10px] text-gray-400">Jasa Bengkel</span>
                             </div>
                             <h4 class="font-bold text-gray-900 text-xs mt-2">{{ $jasa->nama_jasa }}</h4>
-                            <p class="text-[11px] text-gray-400">{{ $jasa->kode_jasa }}</p>
+                            <p class="text-[11px] text-gray-400 font-medium">#{{ $jasa->id_jasa }}</p>
                         </div>
                         <div class="flex items-center justify-between mt-3 pt-2 border-t border-gray-50">
                             <span class="font-bold text-gray-900 text-sm">Rp {{ number_format($jasa->tarif, 0, ',', '.') }}</span>
@@ -68,7 +68,7 @@
                                 variant="success" 
                                 icon="plus" 
                                 text="Tambah" 
-                                onclick="alert('Ditambahkan {{ $jasa->nama_jasa }} ke keranjang')" 
+                                :onclick="'alert(\'Ditambahkan jasa ' . addslashes($jasa->nama_jasa) . ' ke transaksi\')'" 
                             />
                         </div>
                     </div>
@@ -88,15 +88,15 @@
 
                 <!-- Pilih Pelanggan -->
                 @php
-                    $pelangganOptions = ['0' => 'Pelanggan Umum / Non-Member'];
+                    $pelangganOptions = ['' => 'Pelanggan Umum (Tanpa Member)'];
                     foreach($pelanggans as $p) {
-                        $pelangganOptions[$p->id] = "{$p->nama} - {$p->plat_nomor} ({$p->tipe_motor})";
+                        $pelangganOptions[$p->id_pelanggan] = "{$p->nama} " . ($p->plat_nomor ? "({$p->plat_nomor})" : '');
                     }
                 @endphp
                 <div class="mb-4">
                     <x-select 
                         label="Pilih Pelanggan / Plat Nomor" 
-                        name="pelanggan_id" 
+                        name="id_pelanggan" 
                         :options="$pelangganOptions" 
                     />
                 </div>
@@ -110,6 +110,8 @@
                             $subtotalBarang = $firstBarang->harga_jual;
                             $subtotalJasa = $firstJasa->tarif;
                             $totalBayar = $subtotalBarang + $subtotalJasa;
+                            $nominalBayar = $totalBayar + 3000;
+                            $kembalian = $nominalBayar - $totalBayar;
                         @endphp
                         <div class="p-3 bg-gray-50/70 rounded-xl flex items-center justify-between text-xs">
                             <div>
@@ -142,32 +144,30 @@
             <div class="pt-5 mt-5 border-t border-gray-100">
                 <div class="space-y-2 text-xs mb-4">
                     <div class="flex justify-between text-gray-500">
-                        <span>Subtotal Produk</span>
+                        <span>Subtotal Barang</span>
                         <span class="font-medium text-gray-800">Rp {{ isset($subtotalBarang) ? number_format($subtotalBarang, 0, ',', '.') : '0' }}</span>
                     </div>
                     <div class="flex justify-between text-gray-500">
-                        <span>Biaya Jasa</span>
+                        <span>Tarif Jasa</span>
                         <span class="font-medium text-gray-800">Rp {{ isset($subtotalJasa) ? number_format($subtotalJasa, 0, ',', '.') : '0' }}</span>
                     </div>
                     <div class="flex justify-between text-sm font-bold text-gray-900 pt-2 border-t border-dashed border-gray-200">
-                        <span>TOTAL BAYAR</span>
+                        <span>TOTAL</span>
                         <span class="text-blue-600 text-lg">Rp {{ isset($totalBayar) ? number_format($totalBayar, 0, ',', '.') : '0' }}</span>
                     </div>
                 </div>
 
-                <!-- Metode Pembayaran -->
-                <div class="grid grid-cols-3 gap-2 mb-4 text-xs font-semibold">
-                    <button type="button" class="py-2 rounded-xl border-2 border-blue-600 bg-blue-50/40 text-blue-700 text-center">Tunai</button>
-                    <button type="button" class="py-2 rounded-xl border border-gray-200 hover:bg-gray-50 text-gray-600 text-center">QRIS</button>
-                    <button type="button" class="py-2 rounded-xl border border-gray-200 hover:bg-gray-50 text-gray-600 text-center">Transfer</button>
+                <div class="grid grid-cols-2 gap-3 mb-4">
+                    <x-input label="Nominal Bayar (Rp)" name="nominal_bayar" type="number" :value="isset($nominalBayar) ? $nominalBayar : 0" />
+                    <x-input label="Kembalian (Rp)" name="kembalian" type="number" :value="isset($kembalian) ? $kembalian : 0" :readonly="true" />
                 </div>
 
                 <x-button 
                     variant="primary" 
                     size="lg" 
                     class="w-full py-3" 
-                    text="Bayar & Cetak Struk (F9)" 
-                    onclick="alert('Transaksi berhasil disimpan! Mencetak struk...')" 
+                    text="Proses Pembayaran & Cetak Struk" 
+                    onclick="alert('Transaksi berhasil disimpan! Mencetak nota...')" 
                 />
             </div>
         </div>

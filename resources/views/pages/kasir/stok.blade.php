@@ -12,12 +12,12 @@
     <x-table 
         id="table-stok-kasir" 
         :searchable="true" 
-        searchPlaceholder="Cari nama barang atau barcode..." 
-        :headers="['KODE', 'NAMA PRODUK', 'KATEGORI', 'SATUAN', 'HARGA JUAL', 'STOK', 'STATUS']"
+        searchPlaceholder="Cari nama barang..." 
+        :headers="['ID', 'NAMA PRODUK', 'KATEGORI', 'SATUAN', 'HARGA JUAL', 'STOK', 'STATUS']"
     >
         @forelse($barangs as $barang)
             <tr class="hover:bg-slate-50/70 transition-colors">
-                <td class="py-3.5 px-4 first:pl-6 font-bold text-gray-900">{{ $barang->kode_barang }}</td>
+                <td class="py-3.5 px-4 first:pl-6 font-bold text-gray-500">#{{ $barang->id_barang }}</td>
                 <td class="py-3.5 px-4 font-semibold text-gray-900">{{ $barang->nama_barang }}</td>
                 <td class="py-3.5 px-4 text-gray-600">{{ $barang->kategori->nama_kategori ?? '-' }}</td>
                 <td class="py-3.5 px-4 text-gray-500">{{ $barang->satuan }}</td>

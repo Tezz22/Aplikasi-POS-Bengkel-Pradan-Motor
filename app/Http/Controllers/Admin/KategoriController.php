@@ -10,7 +10,7 @@ class KategoriController extends Controller
 {
     public function index()
     {
-        $kategoris = Kategori::withCount('barang')->latest()->get();
+        $kategoris = Kategori::withCount('barang')->orderBy('id_kategori', 'desc')->get();
 
         return view('pages.admin.kategori', compact('kategoris'));
     }
@@ -18,13 +18,11 @@ class KategoriController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'kode_kategori' => ['required', 'string', 'max:50', 'unique:ms_kategori,kode_kategori'],
-            'nama_kategori' => ['required', 'string', 'max:100'],
-            'deskripsi'     => ['nullable', 'string'],
+            'nama_kategori' => ['required', 'string', 'max:25', 'unique:ms_kategori,nama_kategori'],
         ], [
-            'kode_kategori.required' => 'Kode kategori wajib diisi.',
-            'kode_kategori.unique'   => 'Kode kategori sudah digunakan.',
             'nama_kategori.required' => 'Nama kategori wajib diisi.',
+            'nama_kategori.max'      => 'Nama kategori maksimal 25 karakter.',
+            'nama_kategori.unique'   => 'Nama kategori sudah ada.',
         ]);
 
         Kategori::create($validated);
@@ -35,13 +33,11 @@ class KategoriController extends Controller
     public function update(Request $request, Kategori $kategori)
     {
         $validated = $request->validate([
-            'kode_kategori' => ['required', 'string', 'max:50', 'unique:ms_kategori,kode_kategori,' . $kategori->id],
-            'nama_kategori' => ['required', 'string', 'max:100'],
-            'deskripsi'     => ['nullable', 'string'],
+            'nama_kategori' => ['required', 'string', 'max:25', 'unique:ms_kategori,nama_kategori,' . $kategori->id_kategori . ',id_kategori'],
         ], [
-            'kode_kategori.required' => 'Kode kategori wajib diisi.',
-            'kode_kategori.unique'   => 'Kode kategori sudah digunakan.',
             'nama_kategori.required' => 'Nama kategori wajib diisi.',
+            'nama_kategori.max'      => 'Nama kategori maksimal 25 karakter.',
+            'nama_kategori.unique'   => 'Nama kategori sudah digunakan.',
         ]);
 
         $kategori->update($validated);

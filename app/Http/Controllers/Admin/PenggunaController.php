@@ -10,7 +10,7 @@ class PenggunaController extends Controller
 {
     public function index()
     {
-        $users = User::latest()->get();
+        $users = User::orderBy('id_user', 'desc')->get();
 
         return view('pages.admin.pengguna', compact('users'));
     }
@@ -18,14 +18,16 @@ class PenggunaController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'name'     => ['required', 'string', 'max:255'],
-            'email'    => ['required', 'email', 'unique:users,email'],
+            'nama'     => ['required', 'string', 'max:50'],
+            'email'    => ['required', 'email', 'max:50', 'unique:ms_users,email'],
             'role'     => ['required', 'in:admin,kasir'],
+            'status'   => ['nullable', 'in:aktif,nonaktif'],
             'password' => ['required', 'string', 'min:6', 'confirmed'],
         ], [
-            'name.required'      => 'Nama lengkap wajib diisi.',
+            'nama.required'      => 'Nama lengkap wajib diisi.',
+            'nama.max'           => 'Nama lengkap maksimal 50 karakter.',
             'email.required'     => 'Email wajib diisi.',
-            'email.email'        => 'Format email tidak valid.',
+            'email.max'          => 'Email maksimal 50 karakter.',
             'email.unique'       => 'Email sudah digunakan oleh pengguna lain.',
             'role.required'      => 'Role harus dipilih.',
             'role.in'            => 'Role tidak valid.',
@@ -33,6 +35,8 @@ class PenggunaController extends Controller
             'password.min'       => 'Password minimal 6 karakter.',
             'password.confirmed' => 'Konfirmasi password tidak cocok.',
         ]);
+
+        $validated['status'] = $validated['status'] ?? 'aktif';
 
         User::create($validated);
 
@@ -42,14 +46,16 @@ class PenggunaController extends Controller
     public function update(Request $request, User $user)
     {
         $validated = $request->validate([
-            'name'     => ['required', 'string', 'max:255'],
-            'email'    => ['required', 'email', 'unique:users,email,' . $user->id],
+            'nama'     => ['required', 'string', 'max:50'],
+            'email'    => ['required', 'email', 'max:50', 'unique:ms_users,email,' . $user->id_user . ',id_user'],
             'role'     => ['required', 'in:admin,kasir'],
+            'status'   => ['nullable', 'in:aktif,nonaktif'],
             'password' => ['nullable', 'string', 'min:6', 'confirmed'],
         ], [
-            'name.required'      => 'Nama lengkap wajib diisi.',
+            'nama.required'      => 'Nama lengkap wajib diisi.',
+            'nama.max'           => 'Nama lengkap maksimal 50 karakter.',
             'email.required'     => 'Email wajib diisi.',
-            'email.email'        => 'Format email tidak valid.',
+            'email.max'          => 'Email maksimal 50 karakter.',
             'email.unique'       => 'Email sudah digunakan oleh pengguna lain.',
             'role.required'      => 'Role harus dipilih.',
             'role.in'            => 'Role tidak valid.',
@@ -58,9 +64,10 @@ class PenggunaController extends Controller
         ]);
 
         $data = [
-            'name'  => $validated['name'],
-            'email' => $validated['email'],
-            'role'  => $validated['role'],
+            'nama'   => $validated['nama'],
+            'email'  => $validated['email'],
+            'role'   => $validated['role'],
+            'status' => $validated['status'] ?? $user->status,
         ];
 
         if (!empty($validated['password'])) {
@@ -75,7 +82,7 @@ class PenggunaController extends Controller
     public function destroy(Request $request, User $user)
     {
         // Mencegah admin menghapus dirinya sendiri
-        if ($user->id === $request->user()->id) {
+        if ($user->id_user === $request->user()->id_user) {
             return redirect()->route('admin.pengguna')->withErrors(['Tidak dapat menghapus akun yang sedang digunakan.']);
         }
 

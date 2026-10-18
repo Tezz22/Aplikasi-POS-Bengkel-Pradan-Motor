@@ -8,11 +8,22 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Pelanggan extends Model
 {
     protected $table = 'ms_pelanggan';
+    protected $primaryKey = 'id_pelanggan';
+    const UPDATED_AT = null;
 
-    protected $guarded = ['id'];
+    protected $fillable = [
+        'nama',
+        'plat_nomor',
+        'no_telepon',
+    ];
+
+    public function getIdAttribute()
+    {
+        return $this->id_pelanggan;
+    }
 
     public function penjualan(): HasMany
     {
-        return $this->hasMany(Penjualan::class, 'pelanggan_id');
+        return $this->hasMany(Penjualan::class, 'id_pelanggan', 'id_pelanggan');
     }
 }
