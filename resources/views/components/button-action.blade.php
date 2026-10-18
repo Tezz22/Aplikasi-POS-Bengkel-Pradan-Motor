@@ -1,8 +1,9 @@
 @props([
-    'type'    => 'edit',
-    'onclick' => null,
-    'href'    => null,
-    'title'   => null,
+    'type'        => 'edit',
+    'buttonType'  => 'button',
+    'onclick'     => null,
+    'href'        => null,
+    'title'       => null,
 ])
 
 @php
@@ -41,7 +42,7 @@
         @include('components.icon', ['name' => $cfg['icon'], 'size' => 16])
     </a>
 @else
-    <button type="button" title="{{ $tooltip }}" class="{{ $baseClass }}" @if(isset($onclick) && $onclick) onclick="{{ $onclick }}" @endif>
+    <button type="{{ $buttonType ?? 'button' }}" title="{{ $tooltip }}" class="{{ $baseClass }}" @if(isset($onclick) && $onclick) onclick="{{ $onclick }}" @endif>
         @include('components.icon', ['name' => $cfg['icon'], 'size' => 16])
     </button>
 @endif

@@ -42,9 +42,13 @@
                 <td class="py-3.5 px-4 text-gray-400">{{ $user->created_at ? $user->created_at->format('d M Y') : '-' }}</td>
                 <td class="py-3.5 px-4 last:pr-6">
                     <div class="flex items-center gap-1">
-                        <x-button-action type="edit" onclick="openModal('modal-edit-pengguna')" />
+                        <x-button-action type="edit" onclick="openModal('modal-edit-pengguna-{{ $user->id_user }}')" />
                         @if(($user->id_user ?? $user->id) !== auth()->id())
-                            <x-button-action type="delete" onclick="if(confirm('Hapus pengguna ini?')){{}}" />
+                            <form action="{{ route('admin.pengguna.destroy', $user->id_user) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus akun {{ $user->nama }}?')" class="inline">
+                                @csrf
+                                @method('DELETE')
+                                <x-button-action type="delete" buttonType="submit" />
+                            </form>
                         @endif
                     </div>
                 </td>
@@ -61,6 +65,9 @@
         id="modal-tambah-pengguna" 
         title="Tambah Pengguna Baru" 
         subtitle="Buat akun staf atau administrator sistem POS"
+        :formAction="route('admin.pengguna.store')"
+        formMethod="POST"
+        submitText="Simpan Pengguna"
     >
         <x-input label="Nama Lengkap" name="nama" placeholder="Contoh: Budi Santoso (Maks. 50 Karakter)" maxlength="50" :required="true" />
         <x-input label="Alamat Email" name="email" type="email" placeholder="nama@pradanmotor.com (Maks. 50 Karakter)" maxlength="50" :required="true" />
@@ -79,8 +86,46 @@
             />
         </div>
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <x-input label="Password" name="password" type="password" :required="true" />
-            <x-input label="Konfirmasi Password" name="password_confirmation" type="password" :required="true" />
+            <x-input label="Password" name="password" type="password" placeholder="Minimal 6 karakter" :required="true" />
+            <x-input label="Konfirmasi Password" name="password_confirmation" type="password" placeholder="Ulangi password" :required="true" />
         </div>
     </x-modal>
+
+    {{-- Modals Edit Pengguna --}}
+    @foreach($users as $user)
+        <x-modal 
+            id="modal-edit-pengguna-{{ $user->id_user }}" 
+            title="Edit Pengguna #{{ $user->id_user }}" 
+            subtitle="Perbarui data akun {{ $user->nama }}"
+            :formAction="route('admin.pengguna.update', $user->id_user)"
+            formMethod="PUT"
+            submitText="Perbarui Pengguna"
+        >
+            <x-input label="Nama Lengkap" name="nama" :value="$user->nama" maxlength="50" :required="true" />
+            <x-input label="Alamat Email" name="email" type="email" :value="$user->email" maxlength="50" :required="true" />
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <x-select 
+                    label="Role / Hak Akses" 
+                    name="role" 
+                    :options="['admin' => 'Admin (Akses Penuh)', 'kasir' => 'Kasir (Transaksi POS)']" 
+                    :value="$user->role"
+                    :required="true" 
+                />
+                <x-select 
+                    label="Status Akun" 
+                    name="status" 
+                    :options="['aktif' => 'Aktif', 'nonaktif' => 'Nonaktif']" 
+                    :value="$user->status ?? 'aktif'"
+                    :required="true" 
+                />
+            </div>
+            <div class="p-3 bg-amber-50/60 rounded-xl border border-amber-100 text-[11px] text-amber-800">
+                Kosongkan input password di bawah jika Anda tidak ingin mengubah password akun ini.
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <x-input label="Password Baru (Opsional)" name="password" type="password" placeholder="Minimal 6 karakter" />
+                <x-input label="Konfirmasi Password Baru" name="password_confirmation" type="password" placeholder="Ulangi password baru" />
+            </div>
+        </x-modal>
+    @endforeach
 @endsection

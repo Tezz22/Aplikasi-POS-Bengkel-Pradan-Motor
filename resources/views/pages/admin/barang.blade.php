@@ -37,8 +37,13 @@
                 </td>
                 <td class="py-3.5 px-4 last:pr-6">
                     <div class="flex items-center gap-1">
-                        <x-button-action type="edit" onclick="openModal('modal-edit-barang')" />
-                        <x-button-action type="delete" onclick="if(confirm('Hapus barang ini?')){{}}" />
+                        <x-button-action type="edit" onclick="openModal('modal-edit-barang-{{ $barang->id_barang }}')" />
+                        
+                        <form action="{{ route('admin.barang.destroy', $barang->id_barang) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus barang \'{{ $barang->nama_barang }}\'?')" class="inline">
+                            @csrf
+                            @method('DELETE')
+                            <x-button-action type="delete" buttonType="submit" />
+                        </form>
                     </div>
                 </td>
             </tr>
@@ -53,7 +58,10 @@
     <x-modal 
         id="modal-tambah-barang" 
         title="Tambah Barang Baru" 
-        subtitle="Masukkan informasi barang atau sparepart baru ke inventaris"
+        subtitle="Masukkan informasi barang atau suku cadang baru ke inventaris"
+        :formAction="route('admin.barang.store')"
+        formMethod="POST"
+        submitText="Simpan Barang"
     >
         <x-input label="Nama Barang" name="nama_barang" placeholder="Contoh: Oli MPX2 0.8L Matic (Maks. 30 Karakter)" maxlength="30" :required="true" />
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -61,7 +69,7 @@
                 label="Kategori" 
                 name="id_kategori" 
                 :options="$kategoris->pluck('nama_kategori', 'id_kategori')->toArray()" 
-                :required="true"
+                :required="true" 
             />
             <x-input label="Satuan" name="satuan" placeholder="Botol, Pcs, Set (Maks. 20 Karakter)" maxlength="20" value="Pcs" :required="true" />
         </div>
@@ -70,4 +78,32 @@
             <x-input label="Stok Awal" name="stok" type="number" placeholder="0" :required="true" />
         </div>
     </x-modal>
+
+    {{-- Modals Edit Barang --}}
+    @foreach($barangs as $barang)
+        <x-modal 
+            id="modal-edit-barang-{{ $barang->id_barang }}" 
+            title="Edit Barang #{{ $barang->id_barang }}" 
+            subtitle="Perbarui data suku cadang {{ $barang->nama_barang }}"
+            :formAction="route('admin.barang.update', $barang->id_barang)"
+            formMethod="PUT"
+            submitText="Perbarui Barang"
+        >
+            <x-input label="Nama Barang" name="nama_barang" :value="$barang->nama_barang" maxlength="30" :required="true" />
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <x-select 
+                    label="Kategori" 
+                    name="id_kategori" 
+                    :options="$kategoris->pluck('nama_kategori', 'id_kategori')->toArray()" 
+                    :value="$barang->id_kategori"
+                    :required="true" 
+                />
+                <x-input label="Satuan" name="satuan" :value="$barang->satuan" maxlength="20" :required="true" />
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <x-input label="Harga Jual (Rp)" name="harga_jual" type="number" :value="$barang->harga_jual" :required="true" />
+                <x-input label="Stok Saat Ini" name="stok" type="number" :value="$barang->stok" :required="true" />
+            </div>
+        </x-modal>
+    @endforeach
 @endsection

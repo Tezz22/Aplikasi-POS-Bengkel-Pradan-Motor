@@ -19,7 +19,7 @@
         id="table-barang-masuk" 
         :searchable="true" 
         searchPlaceholder="Cari no. referensi, tanggal, atau supplier...." 
-        :headers="['NO. REFERENSI', 'TANGGAL', 'SUPPLIER', 'BARANG', 'JUMLAH', 'HARGA BELI', 'SUBTOTAL', 'DICATAT OLEH']"
+        :headers="['NO. REFERENSI', 'TANGGAL', 'SUPPLIER', 'BARANG', 'JUMLAH', 'HARGA BELI', 'SUBTOTAL', 'DICATAT OLEH', 'AKSI']"
     >
         @forelse($pembelians as $pembelian)
             <tr class="hover:bg-slate-50/70 transition-colors">
@@ -34,11 +34,18 @@
                 </td>
                 <td class="py-3.5 px-4 text-gray-600">Rp {{ number_format($pembelian->harga_beli, 0, ',', '.') }}</td>
                 <td class="py-3.5 px-4 font-bold text-emerald-600">Rp {{ number_format($pembelian->subtotal, 0, ',', '.') }}</td>
-                <td class="py-3.5 px-4 last:pr-6 text-gray-500">{{ $pembelian->user->nama ?? $pembelian->user->name ?? 'Admin' }}</td>
+                <td class="py-3.5 px-4 text-gray-500">{{ $pembelian->user->nama ?? $pembelian->user->name ?? 'Admin' }}</td>
+                <td class="py-3.5 px-4 last:pr-6">
+                    <form action="{{ route('admin.barang-masuk.destroy', $pembelian->id_tr_pembelian) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin membatalkan dan menghapus catatan penerimaan barang ini? Stok barang akan dikurangi kembali.')" class="inline">
+                        @csrf
+                        @method('DELETE')
+                        <x-button-action type="delete" buttonType="submit" title="Batalkan Penerimaan" />
+                    </form>
+                </td>
             </tr>
         @empty
             <tr>
-                <td colspan="8" class="py-8 text-center text-gray-400">Belum ada data barang masuk</td>
+                <td colspan="9" class="py-8 text-center text-gray-400">Belum ada data barang masuk</td>
             </tr>
         @endforelse
     </x-table>
@@ -49,6 +56,9 @@
         title="Catat Barang Masuk" 
         subtitle="Formulir penerimaan barang masuk dari supplier" 
         size="lg"
+        :formAction="route('admin.barang-masuk.store')"
+        formMethod="POST"
+        submitText="Simpan & Tambah Stok"
     >
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <x-input label="No. Referensi" name="no_referensi" :value="'REF-' . date('Ym') . '-' . str_pad(($pembelians->count() + 1), 3, '0', STR_PAD_LEFT)" maxlength="25" :required="true" />
@@ -59,17 +69,17 @@
                 label="Supplier" 
                 name="id_supplier" 
                 :options="$suppliers->pluck('nama_supplier', 'id_supplier')->toArray()" 
-                :required="true"
+                :required="true" 
             />
             <x-select 
                 label="Pilih Barang" 
                 name="id_barang" 
                 :options="$barangs->pluck('nama_barang', 'id_barang')->toArray()" 
-                :required="true"
+                :required="true" 
             />
         </div>
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <x-input label="Jumlah Masuk" name="jumlah" type="number" placeholder="0" :required="true" />
+            <x-input label="Jumlah Masuk" name="jumlah" type="number" placeholder="1" :required="true" />
             <x-input label="Harga Beli Satuan (Rp)" name="harga_beli" type="number" placeholder="0" :required="true" />
         </div>
         <x-input label="Keterangan Tambahan" name="keterangan" placeholder="Keterangan pasokan atau kondisi barang (Maks. 255 Karakter)" maxlength="255" />

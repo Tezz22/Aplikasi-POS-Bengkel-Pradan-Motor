@@ -35,6 +35,9 @@
                 @if(strtoupper($formMethod ?? 'POST') !== 'GET')
                     @csrf
                 @endif
+                @if(!in_array(strtoupper($formMethod ?? 'POST'), ['GET', 'POST']))
+                    @method($formMethod)
+                @endif
         @endif
 
         <!-- Header -->

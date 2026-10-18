@@ -3,6 +3,7 @@
     'name'        => '',
     'options'     => null,
     'selected'    => null,
+    'value'       => null,
     'placeholder' => '-- Pilih --',
     'required'    => false,
     'error'       => null,
@@ -11,6 +12,8 @@
 
 @php
     $selectId = $id ?? ($name ?: 'select-' . uniqid());
+    $activeVal = $value ?? $selected ?? null;
+    $isList = is_array($options) && array_is_list($options);
 @endphp
 
 <div class="w-full">
@@ -33,8 +36,8 @@
             @endif
             @if(isset($options) && is_array($options))
                 @foreach($options as $val => $optLabel)
-                    @php($currVal = is_numeric($val) ? $optLabel : $val)
-                    <option value="{{ $currVal }}" {{ (string)old($name ?? '', $selected ?? '') === (string)$currVal ? 'selected' : '' }}>
+                    @php($currVal = $isList ? $optLabel : $val)
+                    <option value="{{ $currVal }}" {{ (string)old($name ?? '', $activeVal ?? '') === (string)$currVal ? 'selected' : '' }}>
                         {{ $optLabel }}
                     </option>
                 @endforeach

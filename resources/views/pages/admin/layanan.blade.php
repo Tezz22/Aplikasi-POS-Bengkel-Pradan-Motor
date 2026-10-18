@@ -26,8 +26,13 @@
                 <td class="py-3.5 px-4 font-medium text-gray-900">Rp {{ number_format($layanan->tarif, 0, ',', '.') }}</td>
                 <td class="py-3.5 px-4 last:pr-6">
                     <div class="flex items-center gap-1">
-                        <x-button-action type="edit" onclick="openModal('modal-edit-layanan')" />
-                        <x-button-action type="delete" onclick="if(confirm('Hapus jasa ini?')){{}}" />
+                        <x-button-action type="edit" onclick="openModal('modal-edit-layanan-{{ $layanan->id_jasa }}')" />
+                        
+                        <form action="{{ route('admin.layanan.destroy', $layanan->id_jasa) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus layanan \'{{ $layanan->nama_jasa }}\'?')" class="inline">
+                            @csrf
+                            @method('DELETE')
+                            <x-button-action type="delete" buttonType="submit" />
+                        </form>
                     </div>
                 </td>
             </tr>
@@ -43,8 +48,26 @@
         id="modal-tambah-layanan" 
         title="Tambah Jasa / Layanan Baru" 
         subtitle="Masukkan nama servis dan tarif jasa mekanik"
+        :formAction="route('admin.layanan.store')"
+        formMethod="POST"
+        submitText="Simpan Layanan"
     >
         <x-input label="Nama Jasa / Servis" name="nama_jasa" placeholder="Contoh: Servis Ringan / Tune Up (Maks. 120 Karakter)" maxlength="120" :required="true" />
         <x-input label="Tarif Jasa (Rp)" name="tarif" type="number" placeholder="0" :required="true" />
     </x-modal>
+
+    {{-- Modals Edit Layanan --}}
+    @foreach($layanans as $layanan)
+        <x-modal 
+            id="modal-edit-layanan-{{ $layanan->id_jasa }}" 
+            title="Edit Layanan Jasa #{{ $layanan->id_jasa }}" 
+            subtitle="Perbarui nama servis atau tarif mekanik"
+            :formAction="route('admin.layanan.update', $layanan->id_jasa)"
+            formMethod="PUT"
+            submitText="Perbarui Layanan"
+        >
+            <x-input label="Nama Jasa / Servis" name="nama_jasa" :value="$layanan->nama_jasa" maxlength="120" :required="true" />
+            <x-input label="Tarif Jasa (Rp)" name="tarif" type="number" :value="$layanan->tarif" :required="true" />
+        </x-modal>
+    @endforeach
 @endsection

@@ -30,8 +30,13 @@
                 </td>
                 <td class="py-3.5 px-4 last:pr-6">
                     <div class="flex items-center gap-1">
-                        <x-button-action type="edit" onclick="openModal('modal-edit-kategori')" />
-                        <x-button-action type="delete" onclick="if(confirm('Hapus kategori ini?')){{}}" />
+                        <x-button-action type="edit" onclick="openModal('modal-edit-kategori-{{ $kategori->id_kategori }}')" />
+                        
+                        <form action="{{ route('admin.kategori.destroy', $kategori->id_kategori) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus kategori \'{{ $kategori->nama_kategori }}\'?')" class="inline">
+                            @csrf
+                            @method('DELETE')
+                            <x-button-action type="delete" buttonType="submit" />
+                        </form>
                     </div>
                 </td>
             </tr>
@@ -47,7 +52,36 @@
         id="modal-tambah-kategori" 
         title="Tambah Kategori Barang" 
         subtitle="Buat kategori baru untuk pengelompokan suku cadang"
+        :formAction="route('admin.kategori.store')"
+        formMethod="POST"
+        submitText="Simpan Kategori"
     >
-        <x-input label="Nama Kategori" name="nama_kategori" placeholder="Contoh: Ban & Roda (Maks. 25 Karakter)" maxlength="25" :required="true" />
+        <x-input 
+            label="Nama Kategori" 
+            name="nama_kategori" 
+            placeholder="Contoh: Ban & Roda (Maks. 25 Karakter)" 
+            maxlength="25" 
+            :required="true" 
+        />
     </x-modal>
+
+    {{-- Modals Edit Kategori --}}
+    @foreach($kategoris as $kategori)
+        <x-modal 
+            id="modal-edit-kategori-{{ $kategori->id_kategori }}" 
+            title="Edit Kategori #{{ $kategori->id_kategori }}" 
+            subtitle="Perbarui nama kategori suku cadang"
+            :formAction="route('admin.kategori.update', $kategori->id_kategori)"
+            formMethod="PUT"
+            submitText="Perbarui Kategori"
+        >
+            <x-input 
+                label="Nama Kategori" 
+                name="nama_kategori" 
+                :value="$kategori->nama_kategori" 
+                maxlength="25" 
+                :required="true" 
+            />
+        </x-modal>
+    @endforeach
 @endsection

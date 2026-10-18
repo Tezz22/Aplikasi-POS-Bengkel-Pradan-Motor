@@ -16,10 +16,9 @@ class DashboardController extends Controller
         $today = Carbon::today();
 
         // Metrik Ringkasan
-        $pendapatanHariIni = Penjualan::whereDate('tanggal', $today)->where('status', 'Lunas')->sum('total');
+        $pendapatanHariIni = Penjualan::whereDate('tanggal', $today)->sum('total');
         if ($pendapatanHariIni == 0) {
-            // Jika tanggal seeder berbeda, tampilkan total terkini
-            $pendapatanHariIni = Penjualan::where('status', 'Lunas')->sum('total');
+            $pendapatanHariIni = Penjualan::sum('total');
         }
 
         $totalTransaksiHariIni = Penjualan::whereDate('tanggal', $today)->count();
@@ -27,8 +26,8 @@ class DashboardController extends Controller
             $totalTransaksiHariIni = Penjualan::count();
         }
 
-        $produkTerjual = PenjualanDetail::where('tipe', 'barang')->sum('qty');
-        $rataRata = Penjualan::where('status', 'Lunas')->avg('total') ?? 0;
+        $produkTerjual = PenjualanDetail::where('jenis_item', 'barang')->sum('qty');
+        $rataRata = Penjualan::avg('total') ?? 0;
 
         $stokMenipis = Barang::where('stok', '<=', 10)->count();
         $totalBarang = Barang::count();
@@ -36,7 +35,7 @@ class DashboardController extends Controller
 
         // Status Transaksi Terbaru
         $transaksiTerbaru = Penjualan::with('pelanggan')
-            ->latest('tanggal')
+            ->orderBy('tanggal', 'desc')
             ->take(7)
             ->get();
 

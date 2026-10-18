@@ -70,7 +70,15 @@
                 <td class="py-3.5 px-4 text-gray-600">{{ $opname->keterangan ?? '-' }}</td>
                 <td class="py-3.5 px-4 text-gray-500">{{ $opname->user->nama ?? $opname->user->name ?? 'Admin' }}</td>
                 <td class="py-3.5 px-4 last:pr-6">
-                    <x-button-action type="info" onclick="openModal('modal-detail-opname-{{ $opname->id_opname }}')" />
+                    <div class="flex items-center gap-1">
+                        <x-button-action type="info" onclick="openModal('modal-detail-opname-{{ $opname->id_opname }}')" />
+                        
+                        <form action="{{ route('admin.stok-opname.destroy', $opname->id_opname) }}" method="POST" onsubmit="return confirm('Hapus catatan audit sesi penyesuaian stok ini?')" class="inline">
+                            @csrf
+                            @method('DELETE')
+                            <x-button-action type="delete" buttonType="submit" title="Hapus Sesi Opname" />
+                        </form>
+                    </div>
                 </td>
             </tr>
         @empty
@@ -125,11 +133,26 @@
     {{-- Modal Mulai Stok Opname --}}
     <x-modal 
         id="modal-stok-opname" 
-        title="Mulai Sesi Stok Opname" 
-        subtitle="Pemeriksaan dan audit stok fisik di gudang / etalase toko" 
-        size="md"
+        title="Input Penyesuaian Stok Barang" 
+        subtitle="Sesuaikan stok sistem dengan stok fisik asli di etalase / gudang" 
+        size="lg"
+        :formAction="route('admin.stok-opname.store')"
+        formMethod="POST"
+        submitText="Simpan & Sesuaikan Stok"
     >
-        <x-input label="Tanggal & Waktu Pemeriksaan" name="tanggal" type="datetime-local" :value="date('Y-m-d\TH:i')" :required="true" />
-        <x-input label="Keterangan / Alasan Audit" name="keterangan" placeholder="Contoh: Audit rutin pertengahan bulan (Maks. 255 Karakter)" maxlength="255" />
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <x-input label="Tanggal & Waktu Pemeriksaan" name="tanggal" type="datetime-local" :value="date('Y-m-d\TH:i')" :required="true" />
+            <x-select 
+                label="Pilih Barang yang Disesuaikan" 
+                name="id_barang" 
+                :options="$barangs->pluck('nama_barang', 'id_barang')->toArray()" 
+                :required="true" 
+            />
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <x-input label="Stok Fisik Asli (Hasil Hitung)" name="stok_fisik" type="number" placeholder="0" :required="true" />
+            <x-input label="Keterangan Sesi" name="keterangan" placeholder="Contoh: Audit pertengahan bulan" maxlength="255" />
+        </div>
+        <x-input label="Alasan Perubahan / Penyebab Selisih" name="alasan" placeholder="Contoh: 1 pcs botol retak bocor saat pemindahan rak" :required="true" />
     </x-modal>
 @endsection

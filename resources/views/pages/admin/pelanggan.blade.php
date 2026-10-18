@@ -32,8 +32,13 @@
                 </td>
                 <td class="py-3.5 px-4 last:pr-6">
                     <div class="flex items-center gap-1">
-                        <x-button-action type="edit" onclick="openModal('modal-edit-pelanggan')" />
-                        <x-button-action type="delete" onclick="if(confirm('Hapus pelanggan ini?')){{}}" />
+                        <x-button-action type="edit" onclick="openModal('modal-edit-pelanggan-{{ $pelanggan->id_pelanggan }}')" />
+                        
+                        <form action="{{ route('admin.pelanggan.destroy', $pelanggan->id_pelanggan) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus pelanggan \'{{ $pelanggan->nama }}\'?')" class="inline">
+                            @csrf
+                            @method('DELETE')
+                            <x-button-action type="delete" buttonType="submit" />
+                        </form>
                     </div>
                 </td>
             </tr>
@@ -49,6 +54,9 @@
         id="modal-tambah-pelanggan" 
         title="Tambah Pelanggan Baru" 
         subtitle="Masukkan nama pelanggan, no telepon, dan plat kendaraan"
+        :formAction="route('admin.pelanggan.store')"
+        formMethod="POST"
+        submitText="Simpan Pelanggan"
     >
         <x-input label="Nama Lengkap" name="nama" placeholder="Contoh: Budi Santoso (Maks. 50 Karakter)" maxlength="50" :required="true" />
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -56,4 +64,22 @@
             <x-input label="Plat Nomor Kendaraan" name="plat_nomor" placeholder="Contoh: B 1234 ABC (Maks. 12 Karakter)" maxlength="12" />
         </div>
     </x-modal>
+
+    {{-- Modals Edit Pelanggan --}}
+    @foreach($pelanggans as $pelanggan)
+        <x-modal 
+            id="modal-edit-pelanggan-{{ $pelanggan->id_pelanggan }}" 
+            title="Edit Pelanggan #{{ $pelanggan->id_pelanggan }}" 
+            subtitle="Perbarui data kontak pelanggan {{ $pelanggan->nama }}"
+            :formAction="route('admin.pelanggan.update', $pelanggan->id_pelanggan)"
+            formMethod="PUT"
+            submitText="Perbarui Pelanggan"
+        >
+            <x-input label="Nama Lengkap" name="nama" :value="$pelanggan->nama" maxlength="50" :required="true" />
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <x-input label="No. Telepon / WhatsApp" name="no_telepon" :value="$pelanggan->no_telepon" maxlength="15" />
+                <x-input label="Plat Nomor Kendaraan" name="plat_nomor" :value="$pelanggan->plat_nomor" maxlength="12" />
+            </div>
+        </x-modal>
+    @endforeach
 @endsection

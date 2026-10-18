@@ -26,8 +26,14 @@
                 <td class="py-3.5 px-4 text-gray-500">{{ $trx->user->nama ?? $trx->user->name ?? 'Kasir' }}</td>
                 <td class="py-3.5 px-4 last:pr-6">
                     <div class="flex items-center gap-1">
-                        <x-button-action type="info" onclick="openModal('modal-detail-transaksi-{{ $trx->id_transaksi }}')" />
-                        <x-button-action type="print" :onclick="'alert(\'Mencetak struk transaksi ' . $trx->no_transaksi . '...\')'" />
+                        <x-button-action type="info" onclick="openModal('modal-detail-transaksi-{{ $trx->id_transaksi }}')" title="Lihat Struk" />
+                        <x-button-action type="print" :onclick="'alert(\'Mencetak struk transaksi ' . $trx->no_transaksi . '...\')'" title="Cetak Struk" />
+                        
+                        <form action="{{ route('admin.riwayat.destroy', $trx->id_transaksi) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin membatalkan transaksi {{ $trx->no_transaksi }}? Stok suku cadang akan dikembalikan.')" class="inline">
+                            @csrf
+                            @method('DELETE')
+                            <x-button-action type="delete" buttonType="submit" title="Batalkan Transaksi" />
+                        </form>
                     </div>
                 </td>
             </tr>

@@ -27,8 +27,13 @@
                 <td class="py-3.5 px-4 text-gray-500">{{ $supplier->alamat ?? '-' }}</td>
                 <td class="py-3.5 px-4 last:pr-6">
                     <div class="flex items-center gap-1">
-                        <x-button-action type="edit" onclick="openModal('modal-edit-supplier')" />
-                        <x-button-action type="delete" onclick="if(confirm('Hapus supplier ini?')){{}}" />
+                        <x-button-action type="edit" onclick="openModal('modal-edit-supplier-{{ $supplier->id_supplier }}')" />
+                        
+                        <form action="{{ route('admin.supplier.destroy', $supplier->id_supplier) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus supplier \'{{ $supplier->nama_supplier }}\'?')" class="inline">
+                            @csrf
+                            @method('DELETE')
+                            <x-button-action type="delete" buttonType="submit" />
+                        </form>
                     </div>
                 </td>
             </tr>
@@ -44,9 +49,28 @@
         id="modal-tambah-supplier" 
         title="Tambah Supplier Baru" 
         subtitle="Masukkan data perusahaan atau distributor pemasok barang"
+        :formAction="route('admin.supplier.store')"
+        formMethod="POST"
+        submitText="Simpan Supplier"
     >
         <x-input label="Nama Supplier / Distributor" name="nama_supplier" placeholder="Contoh: PT Astra Otoparts Tbk (Maks. 50 Karakter)" maxlength="50" :required="true" />
         <x-input label="No. Telepon" name="no_telepon" placeholder="Contoh: 021-4603888 (Maks. 15 Karakter)" maxlength="15" />
         <x-input label="Alamat Kantor / Gudang" name="alamat" placeholder="Alamat lengkap supplier" maxlength="255" />
     </x-modal>
+
+    {{-- Modals Edit Supplier --}}
+    @foreach($suppliers as $supplier)
+        <x-modal 
+            id="modal-edit-supplier-{{ $supplier->id_supplier }}" 
+            title="Edit Supplier #{{ $supplier->id_supplier }}" 
+            subtitle="Perbarui kontak atau alamat distributor"
+            :formAction="route('admin.supplier.update', $supplier->id_supplier)"
+            formMethod="PUT"
+            submitText="Perbarui Supplier"
+        >
+            <x-input label="Nama Supplier / Distributor" name="nama_supplier" :value="$supplier->nama_supplier" maxlength="50" :required="true" />
+            <x-input label="No. Telepon" name="no_telepon" :value="$supplier->no_telepon" maxlength="15" />
+            <x-input label="Alamat Kantor / Gudang" name="alamat" :value="$supplier->alamat" maxlength="255" />
+        </x-modal>
+    @endforeach
 @endsection

@@ -126,7 +126,16 @@
                         </div>
                     @endif
 
-                    {{-- Flash Message Error --}}
+                    {{-- Flash Message Error / Session --}}
+                    @if (session('error'))
+                        <div class="mb-6 flex items-center justify-between p-4 bg-rose-50 border border-rose-200 text-rose-800 rounded-2xl text-xs font-medium shadow-xs">
+                            <div class="flex items-center gap-2">
+                                @include('components.icon', ['name' => 'alert-triangle', 'size' => 18])
+                                <span>{{ session('error') }}</span>
+                            </div>
+                            <button onclick="this.parentElement.remove()" class="text-rose-500 hover:text-rose-700">&times;</button>
+                        </div>
+                    @endif
                     @if (isset($errors) && $errors->any())
                         <div class="mb-6 p-4 bg-rose-50 border border-rose-200 text-rose-800 rounded-2xl text-xs font-medium shadow-xs">
                             <div class="flex items-center gap-2 mb-1">
