@@ -42,10 +42,22 @@ class AuthController extends Controller
 
         if (Auth::attempt($credentials, $request->boolean('remember'))) {
             RateLimiter::clear($throttleKey);
+
+            $user = $request->user();
+            if ($user->status !== 'aktif') {
+                Auth::logout();
+                $request->session()->invalidate();
+                $request->session()->regenerateToken();
+
+                return back()->withErrors([
+                    'email' => 'Akun Anda telah dinonaktifkan. Silakan hubungi administrator.',
+                ])->onlyInput('email');
+            }
+
             $request->session()->regenerate();
 
             // Kolom users.role harus berisi "admin" atau "kasir"
-            $role = strtolower((string) $request->user()->role);
+            $role = strtolower((string) $user->role);
 
             if ($role === 'admin') {
                 return redirect()->intended(route('admin.dashboard'));

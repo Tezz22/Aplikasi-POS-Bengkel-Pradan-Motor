@@ -77,6 +77,16 @@ class AdminCrudTest extends TestCase
         $this->assertDatabaseHas('ms_users', [
             'id_user' => $this->admin->id_user,
         ]);
+
+        // 5. Admin cannot deactivate self
+        $selfDeactivate = $this->actingAs($this->admin)->put(route('admin.pengguna.update', $this->admin), [
+            'nama' => $this->admin->nama,
+            'email' => $this->admin->email,
+            'role' => $this->admin->role,
+            'status' => 'nonaktif',
+        ]);
+        $selfDeactivate->assertSessionHasErrors();
+        $this->assertEquals('aktif', $this->admin->fresh()->status);
     }
 
     public function test_admin_can_crud_kategori(): void

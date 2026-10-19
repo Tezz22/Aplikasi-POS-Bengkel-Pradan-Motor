@@ -63,6 +63,11 @@ class PenggunaController extends Controller
             'password.confirmed' => 'Konfirmasi password tidak cocok.',
         ]);
 
+        // Mencegah admin menonaktifkan dirinya sendiri
+        if ($user->id_user === $request->user()->id_user && ($validated['status'] ?? '') === 'nonaktif') {
+            return redirect()->route('admin.pengguna')->withErrors(['Tidak dapat menonaktifkan akun yang sedang digunakan.']);
+        }
+
         $data = [
             'nama'   => $validated['nama'],
             'email'  => $validated['email'],

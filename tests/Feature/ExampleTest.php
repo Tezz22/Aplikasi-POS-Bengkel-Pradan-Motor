@@ -36,6 +36,35 @@ class ExampleTest extends TestCase
         ])->assertRedirect(route('kasir.dashboard'));
     }
 
+    public function test_deactivated_user_cannot_login(): void
+    {
+        $cashier = User::factory()->create([
+            'role'   => 'kasir',
+            'status' => 'nonaktif',
+        ]);
+
+        $response = $this->post(route('login'), [
+            'email'    => $cashier->email,
+            'password' => 'password',
+        ]);
+
+        $response->assertSessionHasErrors('email');
+        $this->assertGuest();
+    }
+
+    public function test_deactivated_user_with_active_session_is_logged_out(): void
+    {
+        $cashier = User::factory()->create([
+            'role'   => 'kasir',
+            'status' => 'nonaktif',
+        ]);
+
+        $response = $this->actingAs($cashier)->get(route('kasir.dashboard'));
+
+        $response->assertRedirect(route('login'));
+        $this->assertGuest();
+    }
+
     public function test_admin_and_cashier_see_separate_dashboard_navigation(): void
     {
         $admin = User::factory()->create(['role' => 'admin']);
