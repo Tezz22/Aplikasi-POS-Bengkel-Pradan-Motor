@@ -36,6 +36,49 @@ class ExampleTest extends TestCase
         ])->assertRedirect(route('kasir.dashboard'));
     }
 
+    public function test_login_displays_all_required_validation_messages(): void
+    {
+        $this->from(route('login'))
+            ->followingRedirects()
+            ->post(route('login'), [])
+            ->assertOk()
+            ->assertSee('Alamat email wajib diisi.')
+            ->assertSee('Password wajib diisi.')
+            ->assertSee('aria-describedby="email-error"', false)
+            ->assertSee('id="email-error"', false)
+            ->assertSee('aria-describedby="password-error"', false)
+            ->assertSee('id="password-error"', false);
+    }
+
+    public function test_login_displays_invalid_email_validation_message(): void
+    {
+        $this->from(route('login'))
+            ->followingRedirects()
+            ->post(route('login'), [
+                'email' => 'bukan-email',
+                'password' => 'password',
+            ])
+            ->assertOk()
+            ->assertSee('Format email tidak valid. Masukkan alamat email yang benar (contoh: admin@pradanmotor.com).')
+            ->assertSee('id="email-error"', false)
+            ->assertDontSee('id="password-error"', false);
+    }
+
+    public function test_login_displays_password_validation_message_below_password_field(): void
+    {
+        $this->from(route('login'))
+            ->followingRedirects()
+            ->post(route('login'), [
+                'email' => 'admin@pradanmotor.com',
+                'password' => '',
+            ])
+            ->assertOk()
+            ->assertSee('Password wajib diisi.')
+            ->assertSee('aria-describedby="password-error"', false)
+            ->assertSee('id="password-error"', false)
+            ->assertDontSee('id="email-error"', false);
+    }
+
     public function test_admin_and_cashier_see_separate_dashboard_navigation(): void
     {
         $admin = User::factory()->create(['role' => 'admin']);

@@ -35,7 +35,7 @@ class AuthController extends Controller
             'password' => ['required', 'string'],
         ], [
             'email.required'    => 'Alamat email wajib diisi.',
-            'email.email'       => 'Format email tidak valid. Masukkan alamat email yang benar (contoh: admin@pradanmotor.com).',
+            'email.email'       => 'Format email tidak valid. Masukkan alamat email yang benar.',
             'password.required' => 'Password wajib diisi.',
             'password.string'   => 'Password harus berupa teks valid.',
         ]);
