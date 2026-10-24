@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use App\Http\Controllers\AuthController;
 
 Route::get('/', function () {
     if (! Auth::check()) {
@@ -11,59 +12,8 @@ Route::get('/', function () {
 
     return redirect()->route(Auth::user()->role === 'admin' ? 'admin.dashboard' : 'kasir.dashboard');
 });
-Route::get('/login', function () {
-    if (Auth::check()) {
-        return redirect()->route(Auth::user()->role === 'admin' ? 'admin.dashboard' : 'kasir.dashboard');
-    }
-
-    return view('pages.login');
-})->name('login');
-Route::post('/login', function (Request $request) {
-    $credentials = $request->validate([
-        'email' => ['required', 'email'],
-        'password' => ['required'],
-    ]);
-
-    if (Auth::attempt($credentials, $request->boolean('remember'))) {
-        $user = $request->user();
-
-        // Cek status keaktifan akun pengguna
-        if ($user->status !== 'aktif') {
-            Auth::logout();
-            $request->session()->invalidate();
-            $request->session()->regenerateToken();
-
-            return back()->withErrors([
-                'email' => 'Akun Anda telah dinonaktifkan. Silakan hubungi administrator.',
-            ])->onlyInput('email');
-        }
-
-        $request->session()->regenerate();
-
-        // Kolom users.role harus berisi "admin" atau "kasir".
-        $role = strtolower((string) $user->role);
-
-        if ($role === 'admin') {
-            return redirect()->route('admin.dashboard');
-        }
-
-        if ($role === 'kasir') {
-            return redirect()->route('kasir.dashboard');
-        }
-
-        Auth::logout();
-        $request->session()->invalidate();
-        $request->session()->regenerateToken();
-
-        return back()->withErrors([
-            'email' => 'Role akun tidak dikenali. Hubungi administrator.',
-        ])->onlyInput('email');
-    }
-
-    return back()->withErrors([
-        'email' => 'Email atau password tidak sesuai.',
-    ])->onlyInput('email');
-});
+Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
+Route::post('/login', [AuthController::class, 'login']);
 Route::post('/logout', function (Request $request) {
     Auth::logout();
     $request->session()->invalidate();
