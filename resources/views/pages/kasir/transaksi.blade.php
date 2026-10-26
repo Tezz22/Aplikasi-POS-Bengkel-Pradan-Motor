@@ -16,12 +16,13 @@
                 <x-search 
                     placeholder="Cari suku cadang atau jenis jasa..." 
                     target="#pos-catalogue" 
+                    id="pos-catalogue-search"
                 />
 
                 <div class="flex items-center gap-1.5 p-1 bg-gray-100 rounded-xl text-xs font-semibold">
-                    <button type="button" class="px-3 py-1 bg-white text-blue-600 rounded-lg shadow-2xs">Semua</button>
-                    <button type="button" class="px-3 py-1 text-gray-500 hover:text-gray-800">Barang</button>
-                    <button type="button" class="px-3 py-1 text-gray-500 hover:text-gray-800">Jasa Servis</button>
+                    <button type="button" data-pos-filter="all" aria-pressed="true" class="px-3 py-1 bg-white text-blue-600 rounded-lg shadow-2xs">Semua</button>
+                    <button type="button" data-pos-filter="barang" aria-pressed="false" class="px-3 py-1 text-gray-500 hover:text-gray-800">Barang</button>
+                    <button type="button" data-pos-filter="jasa" aria-pressed="false" class="px-3 py-1 text-gray-500 hover:text-gray-800">Jasa Servis</button>
                 </div>
             </div>
 
@@ -60,7 +61,6 @@
                         </div>
                     </div>
                 @empty
-                    <div class="col-span-2 py-8 text-center text-xs text-gray-400">Tidak ada barang tersedia</div>
                 @endforelse
 
                 @forelse($jasas as $jasa)
@@ -90,8 +90,10 @@
                         </div>
                     </div>
                 @empty
-                    <div class="col-span-2 py-8 text-center text-xs text-gray-400">Tidak ada produk atau jasa tersedia</div>
                 @endforelse
+                <div id="pos-catalogue-empty" class="hidden col-span-2 py-8 text-center text-xs text-gray-400">
+                    Tidak ada barang atau jasa yang cocok dengan pencarian.
+                </div>
             </div>
         </div>
 
@@ -183,3 +185,56 @@
         </div>
     </div>
 @endsection
+
+@push('scripts')
+    <script>
+        const catalogue = document.getElementById('pos-catalogue');
+        const searchInput = document.getElementById('pos-catalogue-search');
+
+        if (catalogue && searchInput) {
+            const items = Array.from(catalogue.querySelectorAll('.pos-item'));
+            const filterButtons = Array.from(document.querySelectorAll('[data-pos-filter]'));
+            const emptyMessage = document.getElementById('pos-catalogue-empty');
+            let activeFilter = 'all';
+
+            const updateCatalogue = () => {
+                const query = searchInput.value.trim().toLocaleLowerCase();
+                let visibleItems = 0;
+
+                items.forEach((item) => {
+                    const matchesType = activeFilter === 'all' || item.dataset.type === activeFilter;
+                    const matchesSearch = item.dataset.name.includes(query);
+                    const isVisible = matchesType && matchesSearch;
+
+                    item.classList.toggle('hidden', !isVisible);
+                    visibleItems += Number(isVisible);
+                });
+
+                emptyMessage?.classList.toggle('hidden', visibleItems > 0);
+            };
+
+            filterButtons.forEach((button) => {
+                button.addEventListener('click', () => {
+                    activeFilter = button.dataset.posFilter;
+
+                    filterButtons.forEach((filterButton) => {
+                        const isActive = filterButton === button;
+
+                        filterButton.setAttribute('aria-pressed', String(isActive));
+                        filterButton.classList.toggle('bg-white', isActive);
+                        filterButton.classList.toggle('text-blue-600', isActive);
+                        filterButton.classList.toggle('rounded-lg', isActive);
+                        filterButton.classList.toggle('shadow-2xs', isActive);
+                        filterButton.classList.toggle('text-gray-500', !isActive);
+                        filterButton.classList.toggle('hover:text-gray-800', !isActive);
+                    });
+
+                    updateCatalogue();
+                });
+            });
+
+            searchInput.addEventListener('input', updateCatalogue);
+            updateCatalogue();
+        }
+    </script>
+@endpush
