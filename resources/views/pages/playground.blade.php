@@ -313,6 +313,42 @@
                         </div>
                     </td>
                 </tr>
+
+                @php
+                    $extraSamples = [
+                        ['BRG-006', 'Aki Kering GS Astra GTZ5S', 'Kelistrikan', 'Rp 230.000', 12, 'success', 'Tersedia'],
+                        ['BRG-007', 'Ban Luar FDR 90/90-14 Tubeless', 'Ban & Roda', 'Rp 210.000', 15, 'success', 'Tersedia'],
+                        ['BRG-008', 'V-Belt Kit Honda Beat FI', 'Transmisi CVT', 'Rp 105.000', 18, 'success', 'Tersedia'],
+                        ['BRG-009', 'Roller CVT TDR 10gr (Set)', 'Transmisi CVT', 'Rp 85.000', 16, 'success', 'Tersedia'],
+                        ['BRG-010', 'Kampas Tromol Belakang Honda', 'Sistem Rem', 'Rp 40.000', 28, 'success', 'Tersedia'],
+                        ['BRG-011', 'Oli Yamalube Silver 0.8L', 'Oli & Pelumas', 'Rp 48.000', 30, 'success', 'Tersedia'],
+                        ['BRG-012', 'Oli Gardan / Gear Matik 120ml', 'Oli & Pelumas', 'Rp 18.000', 45, 'success', 'Tersedia'],
+                        ['BRG-013', 'Lampu Depan LED H6 Osram', 'Kelistrikan', 'Rp 65.000', 8, 'warning', 'Stok Menipis'],
+                        ['BRG-014', 'Rantai Roda 428H-110L Gold', 'Penggerak', 'Rp 145.000', 5, 'warning', 'Stok Menipis'],
+                        ['BRG-015', 'Minyak Rem DOT 4 Jumbo 50ml', 'Sistem Rem', 'Rp 12.000', 40, 'success', 'Tersedia'],
+                        ['BRG-016', 'Busi Iridium Daytona CR7HIX', 'Kelistrikan & Busi', 'Rp 55.000', 14, 'success', 'Tersedia'],
+                        ['BRG-017', 'Bearing Roda Depan 6201 2RS', 'Ban & Roda', 'Rp 25.000', 25, 'success', 'Tersedia'],
+                    ];
+                @endphp
+
+                @foreach($extraSamples as $sample)
+                    <tr class="hover:bg-slate-50/70 transition-colors">
+                        <td class="py-3.5 px-4 first:pl-6 font-bold text-gray-900">{{ $sample[0] }}</td>
+                        <td class="py-3.5 px-4 font-semibold text-gray-900">{{ $sample[1] }}</td>
+                        <td class="py-3.5 px-4 text-gray-600">{{ $sample[2] }}</td>
+                        <td class="py-3.5 px-4 font-bold text-gray-900">{{ $sample[3] }}</td>
+                        <td class="py-3.5 px-4 font-bold {{ $sample[4] <= 10 ? ($sample[4] == 0 ? 'text-rose-500' : 'text-amber-500') : 'text-gray-800' }}">{{ $sample[4] }}</td>
+                        <td class="py-3.5 px-4">
+                            <x-badge :type="$sample[5]" :text="$sample[6]" />
+                        </td>
+                        <td class="py-3.5 px-4 last:pr-6">
+                            <div class="flex items-center gap-1.5">
+                                <x-button-action type="edit" onclick="alert('Edit {{ $sample[0] }}')" />
+                                <x-button-action type="delete" onclick="alert('Hapus {{ $sample[0] }}')" />
+                            </div>
+                        </td>
+                    </tr>
+                @endforeach
             </x-table>
         </div>
 

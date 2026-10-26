@@ -156,19 +156,298 @@
         </div>
     </div>
 
-    <!-- Quick Global Helpers for Table Search & Modal -->
+    <!-- Global Helpers for Table Pagination, Search & Modal -->
     <script>
-        // Realtime table search
+        class TablePagination {
+            constructor(container) {
+                this.container = container;
+                this.table = container.querySelector('table');
+                if (!this.table) return;
+                this.tableId = this.table.id;
+                this.tbody = this.table.querySelector('tbody');
+                if (!this.tbody) return;
+
+                this.table.tablePagination = this;
+                this.container.tablePagination = this;
+
+                this.perPageSelect = container.querySelector(`[data-per-page-for="${this.tableId}"]`) || container.querySelector('.data-table-per-page');
+                this.infoEl = container.querySelector(`[data-info-for="${this.tableId}"]`) || container.querySelector('.data-table-info');
+                this.paginationControls = container.querySelector(`[data-pagination-for="${this.tableId}"]`) || container.querySelector('.data-table-pagination');
+
+                const initialPerPage = parseInt(this.container.dataset.perPage, 10);
+                this.perPage = !isNaN(initialPerPage) ? initialPerPage : (this.perPageSelect ? parseInt(this.perPageSelect.value, 10) : 10);
+                this.currentPage = 1;
+                this.searchQuery = '';
+
+                this.refreshRows();
+                this.bindEvents();
+                this.render();
+            }
+
+            refreshRows() {
+                this.initialEmptyRow = null;
+                const rows = Array.from(this.tbody.querySelectorAll('tr')).filter(tr => !tr.classList.contains('data-table-no-results'));
+                
+                this.allRows = [];
+                rows.forEach(tr => {
+                    const isColspan = tr.children.length === 1 && tr.children[0].hasAttribute('colspan');
+                    if (isColspan) {
+                        this.initialEmptyRow = tr;
+                    } else {
+                        this.allRows.push(tr);
+                    }
+                });
+
+                this.applyFilter();
+            }
+
+            bindEvents() {
+                if (this.perPageSelect) {
+                    this.perPageSelect.addEventListener('change', () => {
+                        this.perPage = parseInt(this.perPageSelect.value, 10) || 10;
+                        this.currentPage = 1;
+                        this.render();
+                    });
+                }
+            }
+
+            filter(query) {
+                this.searchQuery = (query || '').toLowerCase().trim();
+                this.applyFilter();
+                this.currentPage = 1;
+                this.render();
+            }
+
+            applyFilter() {
+                if (!this.searchQuery) {
+                    this.filteredRows = [...this.allRows];
+                } else {
+                    this.filteredRows = this.allRows.filter(row => {
+                        return row.innerText.toLowerCase().includes(this.searchQuery);
+                    });
+                }
+            }
+
+            render() {
+                const totalOriginal = this.allRows.length;
+                const total = this.filteredRows.length;
+                const totalPages = Math.max(1, Math.ceil(total / this.perPage));
+
+                if (this.currentPage > totalPages) {
+                    this.currentPage = totalPages;
+                }
+                if (this.currentPage < 1) {
+                    this.currentPage = 1;
+                }
+
+                const startIndex = (this.currentPage - 1) * this.perPage;
+                const endIndex = Math.min(startIndex + this.perPage, total);
+
+                // Hide all standard rows first
+                this.allRows.forEach(row => {
+                    row.style.display = 'none';
+                });
+
+                // Clear previous search no-results row
+                const existingNoResults = this.tbody.querySelector('.data-table-no-results');
+                if (existingNoResults) {
+                    existingNoResults.remove();
+                }
+
+                if (totalOriginal === 0) {
+                    if (this.initialEmptyRow) {
+                        this.initialEmptyRow.style.display = '';
+                    }
+                } else if (total === 0) {
+                    if (this.initialEmptyRow) {
+                        this.initialEmptyRow.style.display = 'none';
+                    }
+                    const thCount = this.table.querySelectorAll('thead th').length || 7;
+                    const noResultsTr = document.createElement('tr');
+                    noResultsTr.className = 'data-table-no-results';
+                    noResultsTr.innerHTML = `
+                        <td colspan="${thCount}" class="py-10 text-center text-gray-400">
+                            <div class="flex flex-col items-center justify-center gap-1.5">
+                                <svg class="w-6 h-6 text-gray-300 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <circle cx="11" cy="11" r="8" stroke-width="1.8"></circle>
+                                    <line x1="21" y1="21" x2="16.65" y2="16.65" stroke-width="1.8" stroke-linecap="round"></line>
+                                </svg>
+                                <span class="text-xs">Tidak ada data yang cocok dengan pencarian "<strong>${this.escapeHtml(this.searchQuery)}</strong>"</span>
+                            </div>
+                        </td>
+                    `;
+                    this.tbody.appendChild(noResultsTr);
+                } else {
+                    if (this.initialEmptyRow) {
+                        this.initialEmptyRow.style.display = 'none';
+                    }
+                    for (let i = startIndex; i < endIndex; i++) {
+                        if (this.filteredRows[i]) {
+                            this.filteredRows[i].style.display = '';
+                        }
+                    }
+                }
+
+                this.renderInfo(totalOriginal, total, startIndex, endIndex);
+                this.renderControls(totalPages, total);
+            }
+
+            renderInfo(totalOriginal, total, startIndex, endIndex) {
+                if (!this.infoEl) return;
+
+                if (totalOriginal === 0) {
+                    this.infoEl.innerHTML = 'Belum ada data';
+                    return;
+                }
+
+                if (total === 0) {
+                    this.infoEl.innerHTML = `Menampilkan <span class="font-bold text-gray-800">0</span> data <span class="text-gray-400 font-normal">(difilter dari ${totalOriginal} total data)</span>`;
+                    return;
+                }
+
+                const displayStart = startIndex + 1;
+                const displayEnd = endIndex;
+
+                if (this.searchQuery && total !== totalOriginal) {
+                    this.infoEl.innerHTML = `Menampilkan <span class="font-bold text-gray-800">${displayStart}</span> sampai <span class="font-bold text-gray-800">${displayEnd}</span> dari <span class="font-bold text-gray-800">${total}</span> data <span class="text-gray-400 font-normal">(difilter dari ${totalOriginal} total data)</span>`;
+                } else {
+                    this.infoEl.innerHTML = `Menampilkan <span class="font-bold text-gray-800">${displayStart}</span> sampai <span class="font-bold text-gray-800">${displayEnd}</span> dari <span class="font-bold text-gray-800">${total}</span> data`;
+                }
+            }
+
+            renderControls(totalPages, total) {
+                if (!this.paginationControls) return;
+
+                const isPrevDisabled = this.currentPage <= 1 || total === 0;
+                const isNextDisabled = this.currentPage >= totalPages || total === 0;
+
+                let html = '';
+
+                // Tombol Sebelumnya (Previous)
+                html += `
+                    <button type="button" 
+                            data-page="${this.currentPage - 1}" 
+                            ${isPrevDisabled ? 'disabled' : ''} 
+                            aria-label="Halaman sebelumnya"
+                            class="h-8 px-2.5 rounded-lg border text-xs font-medium flex items-center gap-1 transition-all select-none ${
+                                isPrevDisabled 
+                                    ? 'border-gray-100 bg-gray-50/50 text-gray-300 cursor-not-allowed' 
+                                    : 'border-gray-200 bg-white text-gray-700 hover:bg-gray-50 hover:text-gray-900 cursor-pointer shadow-2xs'
+                            }">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+                        <span class="hidden sm:inline">Sebelumnya</span>
+                    </button>
+                `;
+
+                // Nomor Halaman
+                const pages = this.getPageNumbers(totalPages, this.currentPage);
+                pages.forEach(p => {
+                    if (p === '...') {
+                        html += `<span class="h-8 min-w-[28px] sm:min-w-[32px] px-1 flex items-center justify-center text-xs text-gray-400 font-bold select-none">...</span>`;
+                    } else {
+                        const isActive = p === this.currentPage;
+                        html += `
+                            <button type="button" 
+                                    data-page="${p}" 
+                                    ${total === 0 ? 'disabled' : ''}
+                                    class="h-8 min-w-[28px] sm:min-w-[32px] px-2 rounded-lg border text-xs font-semibold flex items-center justify-center transition-all cursor-pointer ${
+                                        isActive 
+                                            ? 'bg-blue-600 border-blue-600 text-white shadow-2xs' 
+                                            : 'border-gray-200 bg-white text-gray-700 hover:bg-gray-50 hover:text-gray-900 shadow-2xs'
+                                    }">
+                                ${p}
+                            </button>
+                        `;
+                    }
+                });
+
+                // Tombol Selanjutnya (Next)
+                html += `
+                    <button type="button" 
+                            data-page="${this.currentPage + 1}" 
+                            ${isNextDisabled ? 'disabled' : ''} 
+                            aria-label="Halaman selanjutnya"
+                            class="h-8 px-2.5 rounded-lg border text-xs font-medium flex items-center gap-1 transition-all select-none ${
+                                isNextDisabled 
+                                    ? 'border-gray-100 bg-gray-50/50 text-gray-300 cursor-not-allowed' 
+                                    : 'border-gray-200 bg-white text-gray-700 hover:bg-gray-50 hover:text-gray-900 cursor-pointer shadow-2xs'
+                            }">
+                        <span class="hidden sm:inline">Selanjutnya</span>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+                    </button>
+                `;
+
+                this.paginationControls.innerHTML = html;
+
+                this.paginationControls.querySelectorAll('button[data-page]:not([disabled])').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        const targetPage = parseInt(btn.dataset.page, 10);
+                        if (targetPage && targetPage !== this.currentPage && targetPage >= 1 && targetPage <= totalPages) {
+                            this.currentPage = targetPage;
+                            this.render();
+                        }
+                    });
+                });
+            }
+
+            getPageNumbers(total, current) {
+                if (total <= 7) {
+                    return Array.from({ length: total }, (_, i) => i + 1);
+                }
+                if (current <= 4) {
+                    return [1, 2, 3, 4, 5, '...', total];
+                }
+                if (current >= total - 3) {
+                    return [1, '...', total - 4, total - 3, total - 2, total - 1, total];
+                }
+                return [1, '...', current - 1, current, current + 1, '...', total];
+            }
+
+            escapeHtml(str) {
+                return (str || '').replace(/[&<>"']/g, m => ({
+                    '&': '&amp;',
+                    '<': '&lt;',
+                    '>': '&gt;',
+                    '"': '&quot;',
+                    "'": '&#39;'
+                }[m]));
+            }
+        }
+
+        window.TablePagination = TablePagination;
+
+        window.initDataTables = function() {
+            document.querySelectorAll('.data-table-container[data-paginate="true"]').forEach(container => {
+                if (!container.tablePagination) {
+                    new TablePagination(container);
+                } else {
+                    container.tablePagination.refreshRows();
+                    container.tablePagination.render();
+                }
+            });
+        };
+
+        // Realtime table search connected with TablePagination
         document.querySelectorAll('[data-search]').forEach(input => {
             input.addEventListener('input', () => {
                 const target = document.querySelector(input.dataset.search);
-                const query = input.value.toLowerCase().trim();
-                if (target) {
+                if (!target) return;
+
+                if (target.tablePagination) {
+                    target.tablePagination.filter(input.value);
+                } else {
+                    const query = input.value.toLowerCase().trim();
                     target.querySelectorAll('tbody tr').forEach(row => {
                         row.style.display = row.innerText.toLowerCase().includes(query) ? '' : 'none';
                     });
                 }
             });
+        });
+
+        // Initialize on DOM load
+        document.addEventListener('DOMContentLoaded', function() {
+            window.initDataTables();
         });
 
         // Simple modal opener helper

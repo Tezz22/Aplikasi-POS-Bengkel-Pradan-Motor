@@ -1,17 +1,30 @@
 @props([
-    'id'                => 'data-table',
+    'id'                => null,
     'headers'           => null,
     'searchable'        => false,
     'searchPlaceholder' => null,
     'actions'           => null,
     'footer'            => null,
+    'paginate'          => true,
+    'perPage'           => 10,
+    'perPageOptions'    => [10, 25, 50, 100],
 ])
 
 @php
-    $tableId = $id ?? 'data-table';
+    static $tableCounter = 0;
+    $tableCounter++;
+    $tableId = $id ?? ('data-table-' . $tableCounter);
+    $perPageOptions = is_array($perPageOptions) ? $perPageOptions : [10, 25, 50, 100];
+    if (!in_array($perPage, $perPageOptions)) {
+        $perPage = $perPageOptions[0] ?? 10;
+    }
 @endphp
 
-<div class="bg-white rounded-2xl border border-gray-100 shadow-xs overflow-hidden">
+<div id="{{ $tableId }}-container" 
+     class="data-table-container bg-white rounded-2xl border border-gray-100 shadow-xs overflow-hidden"
+     data-table-id="{{ $tableId }}"
+     data-paginate="{{ $paginate ? 'true' : 'false' }}"
+     data-per-page="{{ $perPage }}">
     {{-- Optional Toolbar (Search + Actions) --}}
     @if((isset($searchable) && $searchable) || (isset($actions) && $actions))
         <div class="p-4 sm:p-5 border-b border-gray-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -52,7 +65,41 @@
         </table>
     </div>
 
-    {{-- Optional Footer / Pagination slot --}}
+    {{-- Pagination & Data Display --}}
+    @if($paginate)
+        <div id="{{ $tableId }}-pagination-footer" class="p-3.5 sm:px-5 sm:py-3 border-t border-gray-100 bg-gray-50/50 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs select-none">
+            {{-- Left: Per-page selector & Row counters --}}
+            <div class="flex flex-wrap items-center gap-2 sm:gap-3 text-gray-500">
+                <div class="flex items-center gap-1.5">
+                    <span class="text-xs text-gray-500">Tampilkan</span>
+                    <select id="{{ $tableId }}-per-page" 
+                            data-per-page-for="{{ $tableId }}" 
+                            aria-label="Jumlah baris per halaman"
+                            class="data-table-per-page bg-white border border-gray-200 text-gray-700 text-xs font-semibold rounded-lg px-2.5 py-1 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all cursor-pointer shadow-2xs">
+                        @foreach($perPageOptions as $option)
+                            <option value="{{ $option }}" {{ $option == $perPage ? 'selected' : '' }}>
+                                {{ $option }}
+                            </option>
+                        @endforeach
+                    </select>
+                    <span class="text-xs text-gray-500">data per halaman</span>
+                </div>
+                
+                <span class="text-gray-300 hidden sm:inline">•</span>
+
+                <div class="data-table-info text-xs text-gray-500 font-medium" data-info-for="{{ $tableId }}">
+                    Menampilkan <span class="font-bold text-gray-800" data-info="start">0</span> sampai <span class="font-bold text-gray-800" data-info="end">0</span> dari <span class="font-bold text-gray-800" data-info="total">0</span> data
+                </div>
+            </div>
+
+            {{-- Right: Pagination Navigation Controls --}}
+            <div class="flex items-center gap-1 data-table-pagination overflow-x-auto" data-pagination-for="{{ $tableId }}">
+                {{-- Injected dynamically by JavaScript --}}
+            </div>
+        </div>
+    @endif
+
+    {{-- Optional Custom Footer slot --}}
     @if(isset($footer) && $footer)
         <div class="p-4 border-t border-gray-100 bg-gray-50/50 text-xs text-gray-500">
             {!! $footer !!}
