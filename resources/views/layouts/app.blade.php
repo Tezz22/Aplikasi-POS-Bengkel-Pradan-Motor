@@ -170,6 +170,10 @@
                 this.table.tablePagination = this;
                 this.container.tablePagination = this;
 
+                this.perPageButtons = container.querySelectorAll(`[data-per-page-val][data-table-target="${this.tableId}"]`);
+                if (!this.perPageButtons || this.perPageButtons.length === 0) {
+                    this.perPageButtons = container.querySelectorAll('.data-table-per-page-btn');
+                }
                 this.perPageSelect = container.querySelector(`[data-per-page-for="${this.tableId}"]`) || container.querySelector('.data-table-per-page');
                 this.infoEl = container.querySelector(`[data-info-for="${this.tableId}"]`) || container.querySelector('.data-table-info');
                 this.paginationControls = container.querySelector(`[data-pagination-for="${this.tableId}"]`) || container.querySelector('.data-table-pagination');
@@ -181,6 +185,7 @@
 
                 this.refreshRows();
                 this.bindEvents();
+                this.updatePerPageButtons();
                 this.render();
             }
 
@@ -202,12 +207,47 @@
             }
 
             bindEvents() {
+                if (this.perPageButtons && this.perPageButtons.length > 0) {
+                    this.perPageButtons.forEach(btn => {
+                        btn.addEventListener('click', (e) => {
+                            e.preventDefault();
+                            const val = parseInt(btn.dataset.perPageVal, 10);
+                            if (val && val !== this.perPage) {
+                                this.setPerPage(val);
+                            }
+                        });
+                    });
+                }
+
                 if (this.perPageSelect) {
                     this.perPageSelect.addEventListener('change', () => {
-                        this.perPage = parseInt(this.perPageSelect.value, 10) || 10;
-                        this.currentPage = 1;
-                        this.render();
+                        this.setPerPage(parseInt(this.perPageSelect.value, 10) || 10);
                     });
+                }
+            }
+
+            setPerPage(val) {
+                this.perPage = val || 10;
+                this.currentPage = 1;
+                this.updatePerPageButtons();
+                this.render();
+            }
+
+            updatePerPageButtons() {
+                if (this.perPageButtons && this.perPageButtons.length > 0) {
+                    this.perPageButtons.forEach(btn => {
+                        const val = parseInt(btn.dataset.perPageVal, 10);
+                        const isActive = val === this.perPage;
+                        btn.setAttribute('aria-selected', isActive ? 'true' : 'false');
+                        if (isActive) {
+                            btn.className = 'data-table-per-page-btn px-2.5 py-1 rounded-lg text-xs transition-all select-none cursor-pointer bg-white text-blue-600 shadow-2xs font-bold';
+                        } else {
+                            btn.className = 'data-table-per-page-btn px-2.5 py-1 rounded-lg text-xs transition-all select-none cursor-pointer text-gray-500 hover:text-gray-900 font-medium';
+                        }
+                    });
+                }
+                if (this.perPageSelect && parseInt(this.perPageSelect.value, 10) !== this.perPage) {
+                    this.perPageSelect.value = this.perPage;
                 }
             }
 
@@ -323,19 +363,19 @@
 
                 let html = '';
 
-                // Tombol Sebelumnya (Previous)
+                // Tombol Sebelumnya (<)
                 html += `
                     <button type="button" 
                             data-page="${this.currentPage - 1}" 
                             ${isPrevDisabled ? 'disabled' : ''} 
                             aria-label="Halaman sebelumnya"
-                            class="h-8 px-2.5 rounded-lg border text-xs font-medium flex items-center gap-1 transition-all select-none ${
+                            title="Halaman sebelumnya"
+                            class="h-8 w-8 rounded-lg border text-xs font-medium flex items-center justify-center transition-all select-none ${
                                 isPrevDisabled 
                                     ? 'border-gray-100 bg-gray-50/50 text-gray-300 cursor-not-allowed' 
                                     : 'border-gray-200 bg-white text-gray-700 hover:bg-gray-50 hover:text-gray-900 cursor-pointer shadow-2xs'
                             }">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
-                        <span class="hidden sm:inline">Sebelumnya</span>
                     </button>
                 `;
 
@@ -361,18 +401,18 @@
                     }
                 });
 
-                // Tombol Selanjutnya (Next)
+                // Tombol Selanjutnya (>)
                 html += `
                     <button type="button" 
                             data-page="${this.currentPage + 1}" 
                             ${isNextDisabled ? 'disabled' : ''} 
                             aria-label="Halaman selanjutnya"
-                            class="h-8 px-2.5 rounded-lg border text-xs font-medium flex items-center gap-1 transition-all select-none ${
+                            title="Halaman selanjutnya"
+                            class="h-8 w-8 rounded-lg border text-xs font-medium flex items-center justify-center transition-all select-none ${
                                 isNextDisabled 
                                     ? 'border-gray-100 bg-gray-50/50 text-gray-300 cursor-not-allowed' 
                                     : 'border-gray-200 bg-white text-gray-700 hover:bg-gray-50 hover:text-gray-900 cursor-pointer shadow-2xs'
                             }">
-                        <span class="hidden sm:inline">Selanjutnya</span>
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
                     </button>
                 `;
