@@ -98,6 +98,89 @@ it('does not add goods when the cart quantity reaches available stock', function
         ->assertSessionHas('kasir_cart', $cart);
 });
 
+it('increases and decreases cart quantities without going below one', function () {
+    $kasir = User::factory()->create(['role' => 'kasir']);
+    $kategori = Kategori::create(['nama_kategori' => 'Pelumas']);
+    $barang = Barang::create([
+        'id_kategori' => $kategori->id_kategori,
+        'nama_barang' => 'Oli Mesin',
+        'satuan' => 'botol',
+        'harga_jual' => 25000,
+        'stok' => 3,
+    ]);
+    $cart = [
+        "barang:{$barang->id_barang}" => [
+            'type' => 'barang',
+            'id' => $barang->id_barang,
+            'quantity' => 2,
+        ],
+    ];
+    $url = route('kasir.transaksi.cart.quantity', [
+        'type' => 'barang',
+        'id' => $barang->id_barang,
+    ]);
+
+    $this->actingAs($kasir)
+        ->withSession(['kasir_cart' => $cart])
+        ->from(route('kasir.transaksi'))
+        ->patch($url, ['action' => 'decrease'])
+        ->assertRedirect(route('kasir.transaksi'))
+        ->assertSessionHas('kasir_cart', [
+            "barang:{$barang->id_barang}" => [
+                'type' => 'barang',
+                'id' => $barang->id_barang,
+                'quantity' => 1,
+            ],
+        ]);
+
+    $this->from(route('kasir.transaksi'))
+        ->patch($url, ['action' => 'decrease'])
+        ->assertRedirect(route('kasir.transaksi'))
+        ->assertSessionHas('error', 'Jumlah item minimal satu. Gunakan ikon tempat sampah untuk menghapus item.')
+        ->assertSessionHas('kasir_cart', [
+            "barang:{$barang->id_barang}" => [
+                'type' => 'barang',
+                'id' => $barang->id_barang,
+                'quantity' => 1,
+            ],
+        ]);
+
+    $this->from(route('kasir.transaksi'))
+        ->patch($url, ['action' => 'increase'])
+        ->assertRedirect(route('kasir.transaksi'))
+        ->assertSessionHas('kasir_cart', $cart);
+});
+
+it('does not increase a cart item beyond the available stock', function () {
+    $kasir = User::factory()->create(['role' => 'kasir']);
+    $kategori = Kategori::create(['nama_kategori' => 'Pelumas']);
+    $barang = Barang::create([
+        'id_kategori' => $kategori->id_kategori,
+        'nama_barang' => 'Oli Mesin',
+        'satuan' => 'botol',
+        'harga_jual' => 25000,
+        'stok' => 1,
+    ]);
+    $cart = [
+        "barang:{$barang->id_barang}" => [
+            'type' => 'barang',
+            'id' => $barang->id_barang,
+            'quantity' => 1,
+        ],
+    ];
+
+    $this->actingAs($kasir)
+        ->withSession(['kasir_cart' => $cart])
+        ->from(route('kasir.transaksi'))
+        ->patch(route('kasir.transaksi.cart.quantity', [
+            'type' => 'barang',
+            'id' => $barang->id_barang,
+        ]), ['action' => 'increase'])
+        ->assertRedirect(route('kasir.transaksi'))
+        ->assertSessionHas('error', 'Stok barang tidak mencukupi untuk ditambahkan.')
+        ->assertSessionHas('kasir_cart', $cart);
+});
+
 it('renders cart quantities and totals and removes a selected item', function () {
     $kasir = User::factory()->create(['role' => 'kasir']);
     $kategori = Kategori::create(['nama_kategori' => 'Pelumas']);
@@ -133,6 +216,9 @@ it('renders cart quantities and totals and removes a selected item', function ()
         ->assertSee('Servis Ringan')
         ->assertSee('Rp 100.000')
         ->assertSee('3 Item')
+        ->assertSee('Kurangi Oli Mesin')
+        ->assertSee('Tambah Oli Mesin')
+        ->assertSee('Hapus Oli Mesin')
         ->assertSee('Proses Pembayaran &amp; Cetak Struk', false)
         ->assertSee('disabled', false);
 

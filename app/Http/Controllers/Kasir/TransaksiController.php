@@ -45,6 +45,7 @@ class TransaksiController extends Controller
                 'name' => $item['type'] === 'barang' ? $product->nama_barang : $product->nama_jasa,
                 'price' => $item['type'] === 'barang' ? $product->harga_jual : $product->tarif,
                 'quantity' => $item['quantity'],
+                'stock' => $item['type'] === 'barang' ? $product->stok : null,
             ];
         }
 
@@ -113,5 +114,40 @@ class TransaksiController extends Controller
         $request->session()->put(self::CART_SESSION_KEY, $cart);
 
         return back()->with('status', 'Item berhasil dihapus dari keranjang.');
+    }
+
+    public function updateCartQuantity(Request $request, string $type, int $id): RedirectResponse
+    {
+        $validated = $request->validate([
+            'action' => ['required', Rule::in(['increase', 'decrease'])],
+        ]);
+        $cart = $request->session()->get(self::CART_SESSION_KEY, []);
+        $key = "{$type}:{$id}";
+
+        if (! isset($cart[$key])) {
+            return back()->with('error', 'Item tidak ditemukan di keranjang.');
+        }
+
+        if ($type === 'barang') {
+            $barang = Barang::findOrFail($id);
+
+            if ($validated['action'] === 'increase' && $cart[$key]['quantity'] >= $barang->stok) {
+                return back()->with('error', 'Stok barang tidak mencukupi untuk ditambahkan.');
+            }
+        } else {
+            Jasa::findOrFail($id);
+        }
+
+        if ($validated['action'] === 'increase') {
+            $cart[$key]['quantity']++;
+        } elseif ($cart[$key]['quantity'] <= 1) {
+            return back()->with('error', 'Jumlah item minimal satu. Gunakan ikon tempat sampah untuk menghapus item.');
+        } else {
+            $cart[$key]['quantity']--;
+        }
+
+        $request->session()->put(self::CART_SESSION_KEY, $cart);
+
+        return back()->with('status', 'Jumlah item berhasil diperbarui.');
     }
 }

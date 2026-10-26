@@ -60,6 +60,10 @@ Route::prefix('kasir')->name('kasir.')->middleware('auth')->group(function () {
     Route::get('/dashboard', [KasirController::class, 'dashboard'])->name('dashboard');
     Route::get('/transaksi', [KasirTransaksiController::class, 'index'])->name('transaksi');
     Route::post('/transaksi/keranjang', [KasirTransaksiController::class, 'addToCart'])->name('transaksi.cart.add');
+    Route::patch('/transaksi/keranjang/{type}/{id}/jumlah', [KasirTransaksiController::class, 'updateCartQuantity'])
+        ->whereIn('type', ['barang', 'jasa'])
+        ->whereNumber('id')
+        ->name('transaksi.cart.quantity');
     Route::delete('/transaksi/keranjang/{type}/{id}', [KasirTransaksiController::class, 'removeFromCart'])
         ->whereIn('type', ['barang', 'jasa'])
         ->whereNumber('id')

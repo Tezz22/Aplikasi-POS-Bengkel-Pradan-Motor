@@ -136,17 +136,48 @@
                 <!-- Items di Keranjang -->
                 <div class="space-y-2.5 max-h-64 overflow-y-auto pr-1">
                     @forelse($cartItems as $item)
-                        <div class="p-3 bg-gray-50/70 rounded-xl flex items-center justify-between text-xs">
-                            <div>
+                        <div class="p-3 bg-gray-50/70 rounded-xl flex items-center justify-between gap-3 text-xs">
+                            <div class="min-w-0 flex-1">
                                 <p class="font-bold text-gray-900">{{ $item['name'] }}</p>
-                                <p class="text-[10px] text-gray-400">Rp {{ number_format($item['price'], 0, ',', '.') }} x {{ $item['quantity'] }}</p>
+                                <p class="text-[10px] text-gray-400">Rp {{ number_format($item['price'], 0, ',', '.') }} per item</p>
                             </div>
-                            <div class="flex items-center gap-3">
-                                <span class="font-bold text-gray-900">Rp {{ number_format($item['price'] * $item['quantity'], 0, ',', '.') }}</span>
+                            <div class="flex shrink-0 items-center gap-2">
+                                <form method="POST" action="{{ route('kasir.transaksi.cart.quantity', ['type' => $item['type'], 'id' => $item['id']]) }}">
+                                    @csrf
+                                    @method('PATCH')
+                                    <input type="hidden" name="action" value="decrease">
+                                    <button
+                                        type="submit"
+                                        aria-label="Kurangi {{ $item['name'] }}"
+                                        title="Kurangi jumlah"
+                                        @disabled($item['quantity'] <= 1)
+                                        class="flex h-7 w-7 items-center justify-center rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-40"
+                                    >
+                                        @include('components.icon', ['name' => 'minus', 'size' => 14])
+                                    </button>
+                                </form>
+                                <span class="min-w-6 text-center font-semibold text-gray-800">{{ $item['quantity'] }}</span>
+                                <form method="POST" action="{{ route('kasir.transaksi.cart.quantity', ['type' => $item['type'], 'id' => $item['id']]) }}">
+                                    @csrf
+                                    @method('PATCH')
+                                    <input type="hidden" name="action" value="increase">
+                                    <button
+                                        type="submit"
+                                        aria-label="Tambah {{ $item['name'] }}"
+                                        title="Tambah jumlah"
+                                        @disabled($item['stock'] !== null && $item['quantity'] >= $item['stock'])
+                                        class="flex h-7 w-7 items-center justify-center rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-40"
+                                    >
+                                        @include('components.icon', ['name' => 'plus', 'size' => 14])
+                                    </button>
+                                </form>
+                                <span class="min-w-24 text-right font-bold text-gray-900">Rp {{ number_format($item['price'] * $item['quantity'], 0, ',', '.') }}</span>
                                 <form method="POST" action="{{ route('kasir.transaksi.cart.remove', ['type' => $item['type'], 'id' => $item['id']]) }}">
                                     @csrf
                                     @method('DELETE')
-                                    <button type="submit" class="text-rose-500 hover:text-rose-700" title="Hapus {{ $item['name'] }}" aria-label="Hapus {{ $item['name'] }}">&times;</button>
+                                    <button type="submit" class="flex h-7 w-7 items-center justify-center rounded-lg text-rose-500 hover:bg-rose-50 hover:text-rose-700" title="Hapus {{ $item['name'] }}" aria-label="Hapus {{ $item['name'] }}">
+                                        @include('components.icon', ['name' => 'trash', 'size' => 15])
+                                    </button>
                                 </form>
                             </div>
                         </div>
