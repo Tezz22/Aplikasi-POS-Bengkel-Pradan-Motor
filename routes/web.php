@@ -1,9 +1,9 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\AuthController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use App\Http\Controllers\AuthController;
+use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
     if (! Auth::check()) {
@@ -38,18 +38,19 @@ Route::post('/profil/password', function (Request $request) {
 
     return back()->with('status', 'Password berhasil diperbarui.');
 })->middleware('auth')->name('profile.password.update');
-use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
-use App\Http\Controllers\Admin\PenggunaController as AdminPenggunaController;
 use App\Http\Controllers\Admin\BarangController as AdminBarangController;
+use App\Http\Controllers\Admin\BarangMasukController as AdminBarangMasukController;
+use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\KategoriController as AdminKategoriController;
-use App\Http\Controllers\Admin\SupplierController as AdminSupplierController;
+use App\Http\Controllers\Admin\LaporanController as AdminLaporanController;
 use App\Http\Controllers\Admin\LayananController as AdminLayananController;
 use App\Http\Controllers\Admin\PelangganController as AdminPelangganController;
-use App\Http\Controllers\Admin\BarangMasukController as AdminBarangMasukController;
-use App\Http\Controllers\Admin\StokOpnameController as AdminStokOpnameController;
-use App\Http\Controllers\Admin\RiwayatController as AdminRiwayatController;
-use App\Http\Controllers\Admin\LaporanController as AdminLaporanController;
+use App\Http\Controllers\Admin\PenggunaController as AdminPenggunaController;
 use App\Http\Controllers\Admin\ProfilController as AdminProfilController;
+use App\Http\Controllers\Admin\RiwayatController as AdminRiwayatController;
+use App\Http\Controllers\Admin\StokOpnameController as AdminStokOpnameController;
+use App\Http\Controllers\Admin\SupplierController as AdminSupplierController;
+use App\Http\Controllers\Kasir\TransaksiController as KasirTransaksiController;
 use App\Http\Controllers\KasirController;
 
 Route::get('/registrasi', fn () => view('pages.register'))->name('register');
@@ -57,7 +58,12 @@ Route::get('/playground', fn () => view('pages.playground'))->name('playground')
 
 Route::prefix('kasir')->name('kasir.')->middleware('auth')->group(function () {
     Route::get('/dashboard', [KasirController::class, 'dashboard'])->name('dashboard');
-    Route::get('/transaksi', [KasirController::class, 'transaksi'])->name('transaksi');
+    Route::get('/transaksi', [KasirTransaksiController::class, 'index'])->name('transaksi');
+    Route::post('/transaksi/keranjang', [KasirTransaksiController::class, 'addToCart'])->name('transaksi.cart.add');
+    Route::delete('/transaksi/keranjang/{type}/{id}', [KasirTransaksiController::class, 'removeFromCart'])
+        ->whereIn('type', ['barang', 'jasa'])
+        ->whereNumber('id')
+        ->name('transaksi.cart.remove');
     Route::get('/pelanggan', [KasirController::class, 'pelanggan'])->name('pelanggan');
     Route::get('/stok', [KasirController::class, 'stok'])->name('stok');
     Route::get('/riwayat', [KasirController::class, 'riwayat'])->name('riwayat');
