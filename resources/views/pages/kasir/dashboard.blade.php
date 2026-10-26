@@ -88,7 +88,7 @@
                             </td>
                             <td class="py-3 px-3 text-right font-bold text-gray-900">Rp {{ number_format($trx->total, 0, ',', '.') }}</td>
                             <td class="py-3 px-3 text-center">
-                                <x-button-action type="print" :onclick="'alert(\'Cetak struk ' . $trx->no_transaksi . '...\')'" />
+                                <x-button-action type="print" :href="route('kasir.transaksi.receipt', $trx)" />
                             </td>
                         </tr>
                     @empty

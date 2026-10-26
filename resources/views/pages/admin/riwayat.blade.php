@@ -27,7 +27,7 @@
                 <td class="py-3.5 px-4 last:pr-6">
                     <div class="flex items-center gap-1">
                         <x-button-action type="info" onclick="openModal('modal-detail-transaksi-{{ $trx->id_transaksi }}')" title="Lihat Struk" />
-                        <x-button-action type="print" :onclick="'alert(\'Mencetak struk transaksi ' . $trx->no_transaksi . '...\')'" title="Cetak Struk" />
+                        <x-button-action type="print" :href="route('kasir.transaksi.receipt', $trx)" title="Cetak Struk" />
                         
                         <form action="{{ route('admin.riwayat.destroy', $trx->id_transaksi) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin membatalkan transaksi {{ $trx->no_transaksi }}? Stok suku cadang akan dikembalikan.')" class="inline">
                             @csrf

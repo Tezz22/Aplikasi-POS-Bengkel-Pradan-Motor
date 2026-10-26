@@ -68,6 +68,10 @@ Route::prefix('kasir')->name('kasir.')->middleware('auth')->group(function () {
         ->whereIn('type', ['barang', 'jasa'])
         ->whereNumber('id')
         ->name('transaksi.cart.remove');
+    Route::post('/transaksi/pembayaran', [KasirTransaksiController::class, 'checkout'])->name('transaksi.checkout');
+    Route::get('/transaksi/{penjualan}/struk', [KasirTransaksiController::class, 'receipt'])
+        ->whereNumber('penjualan')
+        ->name('transaksi.receipt');
     Route::get('/pelanggan', [KasirController::class, 'pelanggan'])->name('pelanggan');
     Route::get('/stok', [KasirController::class, 'stok'])->name('stok');
     Route::get('/riwayat', [KasirController::class, 'riwayat'])->name('riwayat');

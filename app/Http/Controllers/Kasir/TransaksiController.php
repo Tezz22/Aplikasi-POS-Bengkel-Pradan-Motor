@@ -6,10 +6,16 @@ use App\Http\Controllers\Controller;
 use App\Models\Barang;
 use App\Models\Jasa;
 use App\Models\Pelanggan;
+use App\Models\Penjualan;
+use App\Models\PenjualanDetail;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 
 class TransaksiController extends Controller
 {
@@ -149,5 +155,142 @@ class TransaksiController extends Controller
         $request->session()->put(self::CART_SESSION_KEY, $cart);
 
         return back()->with('status', 'Jumlah item berhasil diperbarui.');
+    }
+
+    public function checkout(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'id_pelanggan' => ['nullable', 'integer', 'exists:ms_pelanggan,id_pelanggan'],
+            'nominal_bayar' => ['required', 'integer', 'min:0', 'max:2147483647'],
+        ], [
+            'nominal_bayar.required' => 'Nominal uang tunai wajib diisi.',
+            'nominal_bayar.integer' => 'Nominal uang tunai harus berupa angka bulat.',
+            'nominal_bayar.min' => 'Nominal uang tunai tidak boleh negatif.',
+            'nominal_bayar.max' => 'Nominal uang tunai terlalu besar.',
+        ]);
+        $cart = $request->session()->get(self::CART_SESSION_KEY, []);
+
+        if ($cart === []) {
+            return back()->with('error', 'Keranjang masih kosong. Tambahkan barang atau jasa sebelum memproses pembayaran.');
+        }
+
+        ksort($cart);
+
+        $penjualan = DB::transaction(function () use ($request, $validated, $cart): Penjualan {
+            $detailItems = [];
+            $total = 0;
+
+            foreach ($cart as $item) {
+                if (
+                    ! is_array($item)
+                    || ! isset($item['type'], $item['id'], $item['quantity'])
+                    || ! in_array($item['type'], ['barang', 'jasa'], true)
+                    || ! is_numeric($item['id'])
+                    || ! is_numeric($item['quantity'])
+                    || (int) $item['id'] < 1
+                    || (int) $item['quantity'] < 1
+                ) {
+                    throw ValidationException::withMessages([
+                        'cart' => 'Data keranjang tidak valid. Silakan pilih ulang barang atau jasa.',
+                    ]);
+                }
+
+                $quantity = (int) $item['quantity'];
+
+                if ($item['type'] === 'barang') {
+                    $product = Barang::where('id_barang', (int) $item['id'])->lockForUpdate()->firstOrFail();
+
+                    if ($quantity > $product->stok) {
+                        throw ValidationException::withMessages([
+                            'cart' => "Stok {$product->nama_barang} tidak mencukupi untuk pembayaran.",
+                        ]);
+                    }
+
+                    $detailItems[] = [
+                        'product' => $product,
+                        'type' => 'barang',
+                        'id_barang' => $product->id_barang,
+                        'id_jasa' => null,
+                        'name' => $product->nama_barang,
+                        'price' => $product->harga_jual,
+                        'quantity' => $quantity,
+                    ];
+                } else {
+                    $product = Jasa::where('id_jasa', (int) $item['id'])->lockForUpdate()->firstOrFail();
+
+                    $detailItems[] = [
+                        'product' => $product,
+                        'type' => 'jasa',
+                        'id_barang' => null,
+                        'id_jasa' => $product->id_jasa,
+                        'name' => $product->nama_jasa,
+                        'price' => $product->tarif,
+                        'quantity' => $quantity,
+                    ];
+                }
+
+                $total += $detailItems[array_key_last($detailItems)]['price'] * $quantity;
+            }
+
+            if ($validated['nominal_bayar'] < $total) {
+                throw ValidationException::withMessages([
+                    'nominal_bayar' => 'Uang tunai yang dibayarkan kurang dari total pembayaran.',
+                ]);
+            }
+
+            if (! empty($validated['id_pelanggan'])) {
+                Pelanggan::where('id_pelanggan', $validated['id_pelanggan'])->lockForUpdate()->firstOrFail();
+            }
+
+            $penjualan = Penjualan::create([
+                'id_user' => $request->user()->id_user,
+                'id_pelanggan' => $validated['id_pelanggan'] ?? null,
+                'no_transaksi' => 'TRX-'.now()->format('ymdHis').'-'.Str::upper(Str::random(6)),
+                'tanggal' => now(),
+                'total' => $total,
+                'nominal_bayar' => $validated['nominal_bayar'],
+                'kembalian' => $validated['nominal_bayar'] - $total,
+            ]);
+
+            foreach ($detailItems as $item) {
+                PenjualanDetail::create([
+                    'id_transaksi' => $penjualan->id_transaksi,
+                    'id_barang' => $item['id_barang'],
+                    'id_jasa' => $item['id_jasa'],
+                    'jenis_item' => $item['type'],
+                    'nama_item' => Str::limit($item['name'], 100, ''),
+                    'harga_satuan' => $item['price'],
+                    'qty' => $item['quantity'],
+                    'subtotal' => $item['price'] * $item['quantity'],
+                ]);
+
+                if ($item['type'] === 'barang') {
+                    $item['product']->decrement('stok', $item['quantity']);
+                }
+            }
+
+            return $penjualan;
+        });
+
+        $request->session()->forget(self::CART_SESSION_KEY);
+
+        return redirect()
+            ->route('kasir.transaksi.receipt', ['penjualan' => $penjualan, 'print' => 1])
+            ->with('status', 'Pembayaran berhasil. Silakan cetak struk transaksi.');
+    }
+
+    public function receipt(Request $request, Penjualan $penjualan): View
+    {
+        if (
+            $request->user()->role !== 'admin'
+            && (int) $penjualan->id_user !== (int) $request->user()->id_user
+        ) {
+            throw new AuthorizationException;
+        }
+
+        $penjualan->load(['details', 'pelanggan', 'user']);
+        $autoPrint = $request->boolean('print');
+
+        return view('pages.kasir.struk', compact('penjualan', 'autoPrint'));
     }
 }

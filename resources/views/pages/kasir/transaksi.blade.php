@@ -206,13 +206,87 @@
 
                 <button
                     type="button"
-                    disabled
-                    title="Fungsi pembayaran dan cetak struk belum tersedia"
-                    class="w-full rounded-xl bg-gray-200 px-5 py-3 text-sm font-semibold text-gray-500 cursor-not-allowed"
+                    onclick="openModal('payment-modal')"
+                    @disabled($totalBayar <= 0)
+                    class="w-full rounded-xl bg-blue-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-gray-200 disabled:text-gray-500"
                 >
                     Proses Pembayaran &amp; Cetak Struk
                 </button>
             </div>
+        </div>
+    </div>
+
+    <div id="payment-modal" role="dialog" aria-modal="true" aria-labelledby="payment-modal-title" class="fixed inset-0 z-50 hidden items-center justify-center bg-gray-900/50 p-4">
+        <div class="w-full max-w-lg rounded-2xl bg-white p-6 shadow-xl">
+            <div class="mb-5 flex items-start justify-between">
+                <div>
+                    <h2 id="payment-modal-title" class="text-lg font-bold text-gray-900">Pembayaran Tunai</h2>
+                    <p class="mt-1 text-xs text-gray-500">Masukkan nominal uang tunai yang diterima.</p>
+                </div>
+                <button type="button" onclick="closeModal('payment-modal')" aria-label="Tutup modal" class="rounded-lg p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-700">
+                    @include('components.icon', ['name' => 'close', 'size' => 18])
+                </button>
+            </div>
+
+            <form method="POST" action="{{ route('kasir.transaksi.checkout') }}" id="payment-form" data-total="{{ $totalBayar }}">
+                @csrf
+                <input type="hidden" name="_payment_modal" value="1">
+                <input type="hidden" name="id_pelanggan" id="payment-customer">
+
+                @if($errors->has('cart') || $errors->has('id_pelanggan'))
+                    <div role="alert" class="mb-4 rounded-lg bg-rose-50 px-3 py-2 text-xs text-rose-700">
+                        {{ $errors->first('cart') ?: $errors->first('id_pelanggan') }}
+                    </div>
+                @endif
+
+                <div class="mb-4 rounded-xl bg-blue-50 p-4">
+                    <div class="flex items-center justify-between text-sm">
+                        <span class="font-medium text-gray-600">Total Pembayaran</span>
+                        <span class="text-lg font-bold text-blue-700">Rp {{ number_format($totalBayar, 0, ',', '.') }}</span>
+                    </div>
+                </div>
+
+                <div class="space-y-4">
+                    <x-input
+                        label="Uang Tunai Dibayarkan (Rp)"
+                        name="nominal_bayar_display"
+                        id="nominal-bayar-display"
+                        type="text"
+                        inputmode="numeric"
+                        autocomplete="off"
+                        placeholder="Contoh: 100.000"
+                        :value="old('nominal_bayar')"
+                        required
+                    />
+                    <input type="hidden" name="nominal_bayar" id="nominal-bayar" value="{{ old('nominal_bayar') }}">
+                    @if($errors->has('nominal_bayar'))
+                        <p role="alert" class="-mt-3 text-xs text-rose-600">{{ $errors->first('nominal_bayar') }}</p>
+                    @endif
+
+                    <x-input
+                        label="Kembalian (Rp)"
+                        name="kembalian_preview"
+                        id="kembalian-preview"
+                        type="number"
+                        value="0"
+                        readonly
+                    />
+                </div>
+
+                <div class="mt-6 flex justify-end gap-3">
+                    <button type="button" onclick="closeModal('payment-modal')" class="rounded-xl border border-gray-200 px-4 py-2.5 text-sm font-medium text-gray-600 hover:bg-gray-50">
+                        Batal
+                    </button>
+                    <button
+                        type="submit"
+                        id="print-receipt-button"
+                        disabled
+                        class="rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-gray-300"
+                    >
+                        Proses Pembayaran &amp; Cetak Struk
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 @endsection
@@ -267,5 +341,64 @@
             searchInput.addEventListener('input', updateCatalogue);
             updateCatalogue();
         }
+
+        const paymentForm = document.getElementById('payment-form');
+
+        if (paymentForm) {
+            const total = Number(paymentForm.dataset.total);
+            const cashInput = document.getElementById('nominal-bayar');
+            const cashDisplay = document.getElementById('nominal-bayar-display');
+            const changeInput = document.getElementById('kembalian-preview');
+            const printButton = document.getElementById('print-receipt-button');
+            const customerSelect = document.getElementById('id_pelanggan');
+            const customerInput = document.getElementById('payment-customer');
+            const rupiahFormatter = new Intl.NumberFormat('id-ID');
+
+            const formatCashInput = () => {
+                const cursorPosition = cashDisplay.selectionStart ?? cashDisplay.value.length;
+                const digitsBeforeCursor = cashDisplay.value.slice(0, cursorPosition).replace(/\D/g, '').length;
+                const digits = cashDisplay.value.replace(/\D/g, '');
+
+                cashInput.value = digits;
+                cashDisplay.value = digits === '' ? '' : rupiahFormatter.format(Number(digits));
+
+                let nextCursorPosition = 0;
+                let countedDigits = 0;
+
+                while (nextCursorPosition < cashDisplay.value.length && countedDigits < digitsBeforeCursor) {
+                    if (/\d/.test(cashDisplay.value[nextCursorPosition])) {
+                        countedDigits++;
+                    }
+
+                    nextCursorPosition++;
+                }
+
+                cashDisplay.setSelectionRange(nextCursorPosition, nextCursorPosition);
+            };
+
+            const updatePayment = () => {
+                const cash = cashInput.value === '' ? null : Number(cashInput.value);
+
+                changeInput.value = cash === null ? 0 : cash - total;
+                printButton.disabled = cash === null || !Number.isSafeInteger(cash) || cash > 2147483647 || cash < total;
+            };
+
+            cashDisplay.addEventListener('input', () => {
+                formatCashInput();
+                updatePayment();
+            });
+            formatCashInput();
+            updatePayment();
+            customerSelect?.addEventListener('change', () => {
+                customerInput.value = customerSelect.value;
+            });
+            paymentForm.addEventListener('submit', () => {
+                customerInput.value = customerSelect?.value ?? '';
+            });
+        }
+
+        @if($errors->any() && old('_payment_modal'))
+            openModal('payment-modal');
+        @endif
     </script>
 @endpush

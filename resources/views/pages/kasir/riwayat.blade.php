@@ -24,7 +24,7 @@
                 <td class="py-3.5 px-4 text-gray-600">Rp {{ number_format($trx->nominal_bayar, 0, ',', '.') }}</td>
                 <td class="py-3.5 px-4 font-semibold text-emerald-600">Rp {{ number_format($trx->kembalian ?? 0, 0, ',', '.') }}</td>
                 <td class="py-3.5 px-4 last:pr-6">
-                    <x-button-action type="print" :onclick="'alert(\'Mencetak struk ' . $trx->no_transaksi . '...\')'" />
+                    <x-button-action type="print" :href="route('kasir.transaksi.receipt', $trx)" />
                 </td>
             </tr>
         @empty
