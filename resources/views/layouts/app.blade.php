@@ -186,6 +186,21 @@
                 modal.classList.remove('flex');
             }
         }
+
+        // Close open modals on Escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                document.querySelectorAll('[role="dialog"]:not(.hidden)').forEach(modal => {
+                    closeModal(modal.id);
+                });
+            }
+        });
+
+        @if ($errors->any() && old('_modal_id'))
+            document.addEventListener('DOMContentLoaded', function() {
+                openModal(@json(old('_modal_id')));
+            });
+        @endif
     </script>
     @stack('scripts')
 </body>

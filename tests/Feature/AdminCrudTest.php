@@ -212,6 +212,58 @@ class AdminCrudTest extends TestCase
         $this->assertDatabaseMissing('ms_pelanggan', ['id_pelanggan' => $pelanggan->id_pelanggan]);
     }
 
+    public function test_layanan_input_validation(): void
+    {
+        // 1. Required validation
+        $response = $this->actingAs($this->admin)->post(route('admin.layanan.store'), [
+            'nama_jasa' => '',
+            'tarif' => '',
+        ]);
+        $response->assertSessionHasErrors(['nama_jasa', 'tarif']);
+
+        // 2. Min character validation
+        $responseMin = $this->actingAs($this->admin)->post(route('admin.layanan.store'), [
+            'nama_jasa' => 'AB',
+            'tarif' => -100,
+        ]);
+        $responseMin->assertSessionHasErrors(['nama_jasa', 'tarif']);
+
+        // 3. Unique validation
+        Jasa::create(['nama_jasa' => 'Tune Up Injeksi', 'tarif' => 60000]);
+        $responseUnique = $this->actingAs($this->admin)->post(route('admin.layanan.store'), [
+            'nama_jasa' => 'Tune Up Injeksi',
+            'tarif' => 65000,
+        ]);
+        $responseUnique->assertSessionHasErrors(['nama_jasa']);
+    }
+
+    public function test_pelanggan_input_validation(): void
+    {
+        // 1. Required validation
+        $response = $this->actingAs($this->admin)->post(route('admin.pelanggan.store'), [
+            'nama' => '',
+        ]);
+        $response->assertSessionHasErrors(['nama']);
+
+        // 2. Min length validation
+        $responseMin = $this->actingAs($this->admin)->post(route('admin.pelanggan.store'), [
+            'nama' => 'A',
+            'no_telepon' => '123',
+        ]);
+        $responseMin->assertSessionHasErrors(['nama', 'no_telepon']);
+
+        // 3. Uppercase conversion and trimming
+        $this->actingAs($this->admin)->post(route('admin.pelanggan.store'), [
+            'nama' => '  Pak Joko  ',
+            'plat_nomor' => 'b 9999 zzz',
+            'no_telepon' => '081298765432',
+        ]);
+        $this->assertDatabaseHas('ms_pelanggan', [
+            'nama' => 'Pak Joko',
+            'plat_nomor' => 'B 9999 ZZZ',
+        ]);
+    }
+
     public function test_admin_can_crud_barang(): void
     {
         $kategori = Kategori::create(['nama_kategori' => 'Ban Motor']);

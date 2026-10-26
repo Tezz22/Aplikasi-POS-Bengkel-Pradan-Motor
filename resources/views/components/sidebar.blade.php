@@ -70,7 +70,7 @@
                     </a>
                     <a href="{{ route('admin.layanan') }}" class="flex items-center gap-2.5 py-2 px-3 rounded-lg text-xs font-medium transition-colors {{ $currentRoute === 'admin.layanan' ? 'text-blue-400 font-semibold bg-white/5' : 'text-slate-400 hover:text-white hover:bg-white/5' }}">
                         <span class="w-1.5 h-1.5 rounded-full {{ $currentRoute === 'admin.layanan' ? 'bg-blue-400' : 'bg-slate-500' }}"></span>
-                        Data Layanan
+                        Data Jasa Servis
                     </a>
                 </div>
             </div>

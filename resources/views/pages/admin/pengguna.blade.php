@@ -44,11 +44,7 @@
                     <div class="flex items-center gap-1">
                         <x-button-action type="edit" onclick="openModal('modal-edit-pengguna-{{ $user->id_user }}')" />
                         @if(($user->id_user ?? $user->id) !== auth()->id())
-                            <form action="{{ route('admin.pengguna.destroy', $user->id_user) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus akun {{ $user->nama }}?')" class="inline">
-                                @csrf
-                                @method('DELETE')
-                                <x-button-action type="delete" buttonType="submit" />
-                            </form>
+                            <x-button-action type="delete" onclick="openModal('modal-hapus-pengguna-{{ $user->id_user }}')" />
                         @endif
                     </div>
                 </td>
@@ -127,5 +123,29 @@
                 <x-input label="Konfirmasi Password Baru" name="password_confirmation" type="password" placeholder="Ulangi password baru" />
             </div>
         </x-modal>
+
+        @if(($user->id_user ?? $user->id) !== auth()->id())
+            {{-- Modal Konfirmasi Hapus Pengguna --}}
+            <x-modal 
+                id="modal-hapus-pengguna-{{ $user->id_user }}" 
+                title="Konfirmasi Hapus Akun" 
+                subtitle="Tindakan ini tidak dapat dibatalkan"
+                :formAction="route('admin.pengguna.destroy', $user->id_user)"
+                formMethod="DELETE"
+                submitText="Ya, Hapus Pengguna"
+                submitVariant="danger"
+                size="sm"
+            >
+                <div class="text-center py-2">
+                    <div class="w-12 h-12 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center mx-auto mb-3">
+                        <x-icon name="alert" :size="24" />
+                    </div>
+                    <h4 class="text-sm font-semibold text-gray-900 mb-1">Hapus Pengguna Ini?</h4>
+                    <p class="text-xs text-gray-600 leading-relaxed">
+                        Apakah Anda yakin ingin menghapus akun <span class="font-bold text-gray-900">"{{ $user->nama }}"</span> ({{ $user->email }})?
+                    </p>
+                </div>
+            </x-modal>
+        @endif
     @endforeach
 @endsection

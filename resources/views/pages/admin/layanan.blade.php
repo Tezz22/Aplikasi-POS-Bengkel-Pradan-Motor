@@ -27,12 +27,7 @@
                 <td class="py-3.5 px-4 last:pr-6">
                     <div class="flex items-center gap-1">
                         <x-button-action type="edit" onclick="openModal('modal-edit-layanan-{{ $layanan->id_jasa }}')" />
-                        
-                        <form action="{{ route('admin.layanan.destroy', $layanan->id_jasa) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus layanan \'{{ $layanan->nama_jasa }}\'?')" class="inline">
-                            @csrf
-                            @method('DELETE')
-                            <x-button-action type="delete" buttonType="submit" />
-                        </form>
+                        <x-button-action type="delete" onclick="openModal('modal-hapus-layanan-{{ $layanan->id_jasa }}')" />
                     </div>
                 </td>
             </tr>
@@ -52,8 +47,24 @@
         formMethod="POST"
         submitText="Simpan Layanan"
     >
-        <x-input label="Nama Jasa / Servis" name="nama_jasa" placeholder="Contoh: Servis Ringan / Tune Up (Maks. 120 Karakter)" maxlength="120" :required="true" />
-        <x-input label="Tarif Jasa (Rp)" name="tarif" type="number" placeholder="0" :required="true" />
+        <x-input 
+            label="Nama Jasa / Servis" 
+            name="nama_jasa" 
+            placeholder="Contoh: Servis Ringan / Tune Up (3-120 Karakter)" 
+            minlength="3" 
+            maxlength="120" 
+            :required="true" 
+        />
+        <x-input 
+            label="Tarif Jasa (Rp)" 
+            name="tarif" 
+            type="number" 
+            min="0" 
+            max="100000000" 
+            step="500" 
+            placeholder="Contoh: 50000" 
+            :required="true" 
+        />
     </x-modal>
 
     {{-- Modals Edit Layanan --}}
@@ -66,8 +77,46 @@
             formMethod="PUT"
             submitText="Perbarui Layanan"
         >
-            <x-input label="Nama Jasa / Servis" name="nama_jasa" :value="$layanan->nama_jasa" maxlength="120" :required="true" />
-            <x-input label="Tarif Jasa (Rp)" name="tarif" type="number" :value="$layanan->tarif" :required="true" />
+            <x-input 
+                label="Nama Jasa / Servis" 
+                name="nama_jasa" 
+                :value="$layanan->nama_jasa" 
+                minlength="3" 
+                maxlength="120" 
+                :required="true" 
+            />
+            <x-input 
+                label="Tarif Jasa (Rp)" 
+                name="tarif" 
+                type="number" 
+                min="0" 
+                max="100000000" 
+                step="500" 
+                :value="$layanan->tarif" 
+                :required="true" 
+            />
+        </x-modal>
+
+        {{-- Modal Konfirmasi Hapus Layanan --}}
+        <x-modal 
+            id="modal-hapus-layanan-{{ $layanan->id_jasa }}" 
+            title="Konfirmasi Hapus Layanan" 
+            subtitle="Tindakan ini tidak dapat dibatalkan"
+            :formAction="route('admin.layanan.destroy', $layanan->id_jasa)"
+            formMethod="DELETE"
+            submitText="Ya, Hapus Layanan"
+            submitVariant="danger"
+            size="sm"
+        >
+            <div class="text-center py-2">
+                <div class="w-12 h-12 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center mx-auto mb-3">
+                    <x-icon name="alert" :size="24" />
+                </div>
+                <h4 class="text-sm font-semibold text-gray-900 mb-1">Hapus Layanan Ini?</h4>
+                <p class="text-xs text-gray-600 leading-relaxed">
+                    Apakah Anda yakin ingin menghapus layanan <span class="font-bold text-gray-900">"{{ $layanan->nama_jasa }}"</span> dengan tarif <span class="font-bold text-gray-900">Rp {{ number_format($layanan->tarif, 0, ',', '.') }}</span>?
+                </p>
+            </div>
         </x-modal>
     @endforeach
 @endsection

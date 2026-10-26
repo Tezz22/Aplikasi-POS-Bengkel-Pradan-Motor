@@ -38,12 +38,7 @@
                 <td class="py-3.5 px-4 last:pr-6">
                     <div class="flex items-center gap-1">
                         <x-button-action type="edit" onclick="openModal('modal-edit-barang-{{ $barang->id_barang }}')" />
-                        
-                        <form action="{{ route('admin.barang.destroy', $barang->id_barang) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus barang \'{{ $barang->nama_barang }}\'?')" class="inline">
-                            @csrf
-                            @method('DELETE')
-                            <x-button-action type="delete" buttonType="submit" />
-                        </form>
+                        <x-button-action type="delete" onclick="openModal('modal-hapus-barang-{{ $barang->id_barang }}')" />
                     </div>
                 </td>
             </tr>
@@ -103,6 +98,28 @@
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <x-input label="Harga Jual (Rp)" name="harga_jual" type="number" :value="$barang->harga_jual" :required="true" />
                 <x-input label="Stok Saat Ini" name="stok" type="number" :value="$barang->stok" :required="true" />
+            </div>
+        </x-modal>
+
+        {{-- Modal Konfirmasi Hapus Barang --}}
+        <x-modal 
+            id="modal-hapus-barang-{{ $barang->id_barang }}" 
+            title="Konfirmasi Hapus Barang" 
+            subtitle="Tindakan ini tidak dapat dibatalkan"
+            :formAction="route('admin.barang.destroy', $barang->id_barang)"
+            formMethod="DELETE"
+            submitText="Ya, Hapus Barang"
+            submitVariant="danger"
+            size="sm"
+        >
+            <div class="text-center py-2">
+                <div class="w-12 h-12 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center mx-auto mb-3">
+                    <x-icon name="alert" :size="24" />
+                </div>
+                <h4 class="text-sm font-semibold text-gray-900 mb-1">Hapus Barang Ini?</h4>
+                <p class="text-xs text-gray-600 leading-relaxed">
+                    Apakah Anda yakin ingin menghapus barang <span class="font-bold text-gray-900">"{{ $barang->nama_barang }}"</span>?
+                </p>
             </div>
         </x-modal>
     @endforeach

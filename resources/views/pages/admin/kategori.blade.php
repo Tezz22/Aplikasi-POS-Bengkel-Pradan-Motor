@@ -31,12 +31,7 @@
                 <td class="py-3.5 px-4 last:pr-6">
                     <div class="flex items-center gap-1">
                         <x-button-action type="edit" onclick="openModal('modal-edit-kategori-{{ $kategori->id_kategori }}')" />
-                        
-                        <form action="{{ route('admin.kategori.destroy', $kategori->id_kategori) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus kategori \'{{ $kategori->nama_kategori }}\'?')" class="inline">
-                            @csrf
-                            @method('DELETE')
-                            <x-button-action type="delete" buttonType="submit" />
-                        </form>
+                        <x-button-action type="delete" onclick="openModal('modal-hapus-kategori-{{ $kategori->id_kategori }}')" />
                     </div>
                 </td>
             </tr>
@@ -82,6 +77,28 @@
                 maxlength="25" 
                 :required="true" 
             />
+        </x-modal>
+
+        {{-- Modal Konfirmasi Hapus Kategori --}}
+        <x-modal 
+            id="modal-hapus-kategori-{{ $kategori->id_kategori }}" 
+            title="Konfirmasi Hapus Kategori" 
+            subtitle="Tindakan ini tidak dapat dibatalkan"
+            :formAction="route('admin.kategori.destroy', $kategori->id_kategori)"
+            formMethod="DELETE"
+            submitText="Ya, Hapus Kategori"
+            submitVariant="danger"
+            size="sm"
+        >
+            <div class="text-center py-2">
+                <div class="w-12 h-12 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center mx-auto mb-3">
+                    <x-icon name="alert" :size="24" />
+                </div>
+                <h4 class="text-sm font-semibold text-gray-900 mb-1">Hapus Kategori Ini?</h4>
+                <p class="text-xs text-gray-600 leading-relaxed">
+                    Apakah Anda yakin ingin menghapus kategori <span class="font-bold text-gray-900">"{{ $kategori->nama_kategori }}"</span>?
+                </p>
+            </div>
         </x-modal>
     @endforeach
 @endsection

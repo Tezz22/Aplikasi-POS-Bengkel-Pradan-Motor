@@ -1,12 +1,13 @@
 @props([
-    'id'         => 'modal-dialog',
-    'title'      => '',
-    'subtitle'   => null,
-    'size'       => 'md',
-    'formAction' => null,
-    'formMethod' => 'POST',
-    'submitText' => 'Simpan',
-    'footer'     => null,
+    'id'            => 'modal-dialog',
+    'title'         => '',
+    'subtitle'      => null,
+    'size'          => 'md',
+    'formAction'    => null,
+    'formMethod'    => 'POST',
+    'submitText'    => 'Simpan',
+    'submitVariant' => 'primary',
+    'footer'        => null,
 ])
 
 @php
@@ -26,7 +27,8 @@
 <div id="{{ $id }}" 
      class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs transition-opacity duration-200"
      aria-modal="true" 
-     role="dialog">
+     role="dialog"
+     onclick="if(event.target === this) closeModal('{{ $id }}')">
     
     <!-- Modal Dialog Card -->
     <div class="relative w-full {{ $sz }} bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden transform transition-all">
@@ -38,6 +40,7 @@
                 @if(!in_array(strtoupper($formMethod ?? 'POST'), ['GET', 'POST']))
                     @method($formMethod)
                 @endif
+                <input type="hidden" name="_modal_id" value="{{ $id }}">
         @endif
 
         <!-- Header -->
@@ -72,7 +75,7 @@
                 <x-button variant="secondary" size="sm" :onclick="'closeModal(\'' . $id . '\')'">
                     Batal
                 </x-button>
-                <x-button variant="primary" size="sm" :type="isset($formAction) && $formAction ? 'submit' : 'button'">
+                <x-button :variant="$submitVariant ?? 'primary'" size="sm" :type="isset($formAction) && $formAction ? 'submit' : 'button'">
                     {{ $submitText ?? 'Simpan' }}
                 </x-button>
             @endif

@@ -28,12 +28,7 @@
                 <td class="py-3.5 px-4 last:pr-6">
                     <div class="flex items-center gap-1">
                         <x-button-action type="edit" onclick="openModal('modal-edit-supplier-{{ $supplier->id_supplier }}')" />
-                        
-                        <form action="{{ route('admin.supplier.destroy', $supplier->id_supplier) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus supplier \'{{ $supplier->nama_supplier }}\'?')" class="inline">
-                            @csrf
-                            @method('DELETE')
-                            <x-button-action type="delete" buttonType="submit" />
-                        </form>
+                        <x-button-action type="delete" onclick="openModal('modal-hapus-supplier-{{ $supplier->id_supplier }}')" />
                     </div>
                 </td>
             </tr>
@@ -71,6 +66,28 @@
             <x-input label="Nama Supplier / Distributor" name="nama_supplier" :value="$supplier->nama_supplier" maxlength="50" :required="true" />
             <x-input label="No. Telepon" name="no_telepon" :value="$supplier->no_telepon" maxlength="15" />
             <x-input label="Alamat Kantor / Gudang" name="alamat" :value="$supplier->alamat" maxlength="255" />
+        </x-modal>
+
+        {{-- Modal Konfirmasi Hapus Supplier --}}
+        <x-modal 
+            id="modal-hapus-supplier-{{ $supplier->id_supplier }}" 
+            title="Konfirmasi Hapus Supplier" 
+            subtitle="Tindakan ini tidak dapat dibatalkan"
+            :formAction="route('admin.supplier.destroy', $supplier->id_supplier)"
+            formMethod="DELETE"
+            submitText="Ya, Hapus Supplier"
+            submitVariant="danger"
+            size="sm"
+        >
+            <div class="text-center py-2">
+                <div class="w-12 h-12 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center mx-auto mb-3">
+                    <x-icon name="alert" :size="24" />
+                </div>
+                <h4 class="text-sm font-semibold text-gray-900 mb-1">Hapus Supplier Ini?</h4>
+                <p class="text-xs text-gray-600 leading-relaxed">
+                    Apakah Anda yakin ingin menghapus data supplier <span class="font-bold text-gray-900">"{{ $supplier->nama_supplier }}"</span>?
+                </p>
+            </div>
         </x-modal>
     @endforeach
 @endsection

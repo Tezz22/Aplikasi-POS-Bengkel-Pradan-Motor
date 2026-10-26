@@ -19,16 +19,20 @@ class LayananController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'nama_jasa' => ['required', 'string', 'max:120', 'unique:ms_jasa,nama_jasa'],
-            'tarif'     => ['required', 'numeric', 'min:0'],
+            'nama_jasa' => ['required', 'string', 'min:3', 'max:120', 'unique:ms_jasa,nama_jasa'],
+            'tarif'     => ['required', 'numeric', 'min:0', 'max:100000000'],
         ], [
             'nama_jasa.required' => 'Nama jasa / layanan wajib diisi.',
+            'nama_jasa.min'      => 'Nama jasa minimal 3 karakter.',
             'nama_jasa.max'      => 'Nama jasa maksimal 120 karakter.',
             'nama_jasa.unique'   => 'Nama jasa ini sudah terdaftar.',
             'tarif.required'     => 'Tarif jasa wajib diisi.',
             'tarif.numeric'      => 'Tarif harus berupa angka.',
             'tarif.min'          => 'Tarif tidak boleh bernilai negatif.',
+            'tarif.max'          => 'Tarif tidak boleh melebihi Rp 100.000.000.',
         ]);
+
+        $validated['nama_jasa'] = trim($validated['nama_jasa']);
 
         Jasa::create($validated);
 
@@ -38,16 +42,20 @@ class LayananController extends Controller
     public function update(Request $request, Jasa $jasa)
     {
         $validated = $request->validate([
-            'nama_jasa' => ['required', 'string', 'max:120', 'unique:ms_jasa,nama_jasa,' . $jasa->id_jasa . ',id_jasa'],
-            'tarif'     => ['required', 'numeric', 'min:0'],
+            'nama_jasa' => ['required', 'string', 'min:3', 'max:120', 'unique:ms_jasa,nama_jasa,' . $jasa->id_jasa . ',id_jasa'],
+            'tarif'     => ['required', 'numeric', 'min:0', 'max:100000000'],
         ], [
             'nama_jasa.required' => 'Nama jasa / layanan wajib diisi.',
+            'nama_jasa.min'      => 'Nama jasa minimal 3 karakter.',
             'nama_jasa.max'      => 'Nama jasa maksimal 120 karakter.',
             'nama_jasa.unique'   => 'Nama jasa ini sudah terdaftar.',
             'tarif.required'     => 'Tarif jasa wajib diisi.',
             'tarif.numeric'      => 'Tarif harus berupa angka.',
             'tarif.min'          => 'Tarif tidak boleh bernilai negatif.',
+            'tarif.max'          => 'Tarif tidak boleh melebihi Rp 100.000.000.',
         ]);
+
+        $validated['nama_jasa'] = trim($validated['nama_jasa']);
 
         $jasa->update($validated);
 

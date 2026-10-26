@@ -19,15 +19,28 @@ class PelangganController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'nama'       => ['required', 'string', 'max:50'],
-            'plat_nomor' => ['nullable', 'string', 'max:12'],
-            'no_telepon' => ['nullable', 'string', 'max:15'],
+            'nama'       => ['required', 'string', 'min:2', 'max:50'],
+            'plat_nomor' => ['nullable', 'string', 'min:3', 'max:12', 'regex:/^[A-Za-z0-9\s]+$/'],
+            'no_telepon' => ['nullable', 'string', 'min:8', 'max:15', 'regex:/^[0-9+\-\s]+$/'],
         ], [
-            'nama.required'  => 'Nama lengkap pelanggan wajib diisi.',
-            'nama.max'       => 'Nama pelanggan maksimal 50 karakter.',
-            'plat_nomor.max' => 'Plat nomor maksimal 12 karakter.',
-            'no_telepon.max' => 'Nomor telepon maksimal 15 karakter.',
+            'nama.required'    => 'Nama lengkap pelanggan wajib diisi.',
+            'nama.min'         => 'Nama pelanggan minimal 2 karakter.',
+            'nama.max'         => 'Nama pelanggan maksimal 50 karakter.',
+            'plat_nomor.min'   => 'Plat nomor minimal 3 karakter.',
+            'plat_nomor.max'   => 'Plat nomor maksimal 12 karakter.',
+            'plat_nomor.regex' => 'Format plat nomor hanya boleh huruf, angka, dan spasi.',
+            'no_telepon.min'   => 'Nomor telepon minimal 8 karakter.',
+            'no_telepon.max'   => 'Nomor telepon maksimal 15 karakter.',
+            'no_telepon.regex' => 'Nomor telepon hanya boleh berisi angka dan tanda +.',
         ]);
+
+        $validated['nama'] = trim($validated['nama']);
+        if (!empty($validated['plat_nomor'])) {
+            $validated['plat_nomor'] = strtoupper(trim($validated['plat_nomor']));
+        }
+        if (!empty($validated['no_telepon'])) {
+            $validated['no_telepon'] = trim($validated['no_telepon']);
+        }
 
         Pelanggan::create($validated);
 
@@ -37,15 +50,28 @@ class PelangganController extends Controller
     public function update(Request $request, Pelanggan $pelanggan)
     {
         $validated = $request->validate([
-            'nama'       => ['required', 'string', 'max:50'],
-            'plat_nomor' => ['nullable', 'string', 'max:12'],
-            'no_telepon' => ['nullable', 'string', 'max:15'],
+            'nama'       => ['required', 'string', 'min:2', 'max:50'],
+            'plat_nomor' => ['nullable', 'string', 'min:3', 'max:12', 'regex:/^[A-Za-z0-9\s]+$/'],
+            'no_telepon' => ['nullable', 'string', 'min:8', 'max:15', 'regex:/^[0-9+\-\s]+$/'],
         ], [
-            'nama.required'  => 'Nama lengkap pelanggan wajib diisi.',
-            'nama.max'       => 'Nama pelanggan maksimal 50 karakter.',
-            'plat_nomor.max' => 'Plat nomor maksimal 12 karakter.',
-            'no_telepon.max' => 'Nomor telepon maksimal 15 karakter.',
+            'nama.required'    => 'Nama lengkap pelanggan wajib diisi.',
+            'nama.min'         => 'Nama pelanggan minimal 2 karakter.',
+            'nama.max'         => 'Nama pelanggan maksimal 50 karakter.',
+            'plat_nomor.min'   => 'Plat nomor minimal 3 karakter.',
+            'plat_nomor.max'   => 'Plat nomor maksimal 12 karakter.',
+            'plat_nomor.regex' => 'Format plat nomor hanya boleh huruf, angka, dan spasi.',
+            'no_telepon.min'   => 'Nomor telepon minimal 8 karakter.',
+            'no_telepon.max'   => 'Nomor telepon maksimal 15 karakter.',
+            'no_telepon.regex' => 'Nomor telepon hanya boleh berisi angka dan tanda +.',
         ]);
+
+        $validated['nama'] = trim($validated['nama']);
+        if (!empty($validated['plat_nomor'])) {
+            $validated['plat_nomor'] = strtoupper(trim($validated['plat_nomor']));
+        }
+        if (!empty($validated['no_telepon'])) {
+            $validated['no_telepon'] = trim($validated['no_telepon']);
+        }
 
         $pelanggan->update($validated);
 
@@ -54,10 +80,8 @@ class PelangganController extends Controller
 
     public function destroy(Pelanggan $pelanggan)
     {
-        $totalPenjualan = Penjualan::where('id_pelanggan', $pelanggan->id_pelanggan)->count();
-        if ($totalPenjualan > 0) {
-            return redirect()->route('admin.pelanggan')->with('error', "Pelanggan '{$pelanggan->nama}' tidak dapat dihapus karena memiliki {$totalPenjualan} riwayat transaksi.");
-        }
+        // Set id_pelanggan pada riwayat penjualan menjadi null agar data transaksi tetap tersimpan aman
+        Penjualan::where('id_pelanggan', $pelanggan->id_pelanggan)->update(['id_pelanggan' => null]);
 
         $pelanggan->delete();
 
