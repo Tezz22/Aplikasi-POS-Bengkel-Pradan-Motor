@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Barang;
+use App\Models\Jasa;
 use App\Models\Kategori;
 use App\Models\Pelanggan;
 use App\Models\Pembelian;
@@ -10,7 +11,6 @@ use App\Models\Penjualan;
 use App\Models\PenjualanDetail;
 use App\Models\Supplier;
 use App\Models\User;
-use App\Models\Jasa;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -210,6 +210,45 @@ class AdminCrudTest extends TestCase
         $deleteResponse = $this->actingAs($this->admin)->delete(route('admin.pelanggan.destroy', $pelanggan));
         $deleteResponse->assertRedirect(route('admin.pelanggan'));
         $this->assertDatabaseMissing('ms_pelanggan', ['id_pelanggan' => $pelanggan->id_pelanggan]);
+    }
+
+    public function test_kasir_can_add_pelanggan(): void
+    {
+        $kasir = User::factory()->create([
+            'role' => 'kasir',
+            'status' => 'aktif',
+        ]);
+
+        $response = $this->actingAs($kasir)->post(route('kasir.pelanggan.store'), [
+            'nama' => 'Novi Putri',
+            'plat_nomor' => 'D 1234 ABC',
+            'no_telepon' => '081234567890',
+        ]);
+
+        $response->assertRedirect(route('kasir.pelanggan'));
+        $response->assertSessionHas('status', 'Pelanggan baru berhasil ditambahkan!');
+        $this->assertDatabaseHas('ms_pelanggan', [
+            'nama' => 'Novi Putri',
+            'plat_nomor' => 'D 1234 ABC',
+            'no_telepon' => '081234567890',
+        ]);
+    }
+
+    public function test_kasir_cannot_add_pelanggan_with_invalid_data(): void
+    {
+        $kasir = User::factory()->create([
+            'role' => 'kasir',
+            'status' => 'aktif',
+        ]);
+
+        $response = $this->actingAs($kasir)->post(route('kasir.pelanggan.store'), [
+            'nama' => 'A',
+            'plat_nomor' => '!!!',
+            'no_telepon' => 'abc',
+        ]);
+
+        $response->assertSessionHasErrors(['nama', 'plat_nomor', 'no_telepon']);
+        $this->assertDatabaseCount('ms_pelanggan', 0);
     }
 
     public function test_layanan_input_validation(): void

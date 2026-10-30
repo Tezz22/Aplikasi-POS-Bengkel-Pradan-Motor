@@ -51,11 +51,37 @@
         id="modal-tambah-pelanggan" 
         title="Daftarkan Pelanggan Baru" 
         subtitle="Input data pemilik dan plat nomor motor pelanggan"
+        :formAction="route('kasir.pelanggan.store')"
+        formMethod="POST"
+        submitText="Simpan Pelanggan"
     >
-        <x-input label="Nama Lengkap" name="nama" placeholder="Contoh: Budi Santoso (Maks. 50 Karakter)" maxlength="50" :required="true" />
+        <x-input
+            label="Nama Lengkap"
+            name="nama"
+            placeholder="Contoh: Budi Santoso (2-50 Karakter)"
+            minlength="2"
+            maxlength="50"
+            :required="true"
+        />
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <x-input label="Plat Nomor Motor" name="plat_nomor" placeholder="Contoh: B 1234 ABC (Maks. 12 Karakter)" maxlength="12" />
-            <x-input label="No. Telepon / WhatsApp" name="no_telepon" placeholder="Contoh: 08123456789 (Maks. 15 Karakter)" maxlength="15" />
+            <x-input
+                label="No. Telepon / WhatsApp"
+                name="no_telepon"
+                type="tel"
+                placeholder="Contoh: 08123456789"
+                minlength="8"
+                maxlength="15"
+                pattern="[0-9+\-\s]{8,15}"
+                title="Nomor telepon minimal 8-15 digit"
+            />
+            <x-input
+                label="Plat Nomor Kendaraan"
+                name="plat_nomor"
+                placeholder="Contoh: B 1234 ABC"
+                minlength="3"
+                maxlength="12"
+                oninput="this.value = this.value.toUpperCase()"
+            />
         </div>
     </x-modal>
 @endsection
