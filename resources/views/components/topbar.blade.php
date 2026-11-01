@@ -192,15 +192,13 @@
                 <span>{{ \Carbon\Carbon::now()->translatedFormat('d M Y') }}</span>
             </div>
 
-            <form method="POST" action="{{ route('logout') }}" onsubmit="return confirm('Apakah Anda yakin ingin logout?');">
-                @csrf
-                <button type="submit" 
-                        title="Keluar / Logout" 
-                        class="w-9 h-9 rounded-xl flex items-center justify-center text-rose-500 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer">
-                    @include('components.icon', ['name' => 'logout', 'size' => 20])
-                    <span class="sr-only">Logout</span>
-                </button>
-            </form>
+            <button type="button" 
+                    onclick="openModal('modal-logout')"
+                    title="Keluar / Logout" 
+                    class="w-9 h-9 rounded-xl flex items-center justify-center text-rose-500 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer">
+                @include('components.icon', ['name' => 'logout', 'size' => 20])
+                <span class="sr-only">Logout</span>
+            </button>
         </div>
     </div>
 </header>

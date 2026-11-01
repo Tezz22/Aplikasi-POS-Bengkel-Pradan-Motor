@@ -5,6 +5,7 @@
     'searchPlaceholder' => null,
     'actions'           => null,
     'footer'            => null,
+    'tfoot'             => null,
     'paginate'          => true,
     'perPage'           => 10,
     'perPageOptions'    => [10, 25, 50, 100],
@@ -134,6 +135,10 @@
             <tbody class="divide-y divide-gray-50 text-gray-700">
                 {{ $slot }}
             </tbody>
+
+            @if(isset($tfoot) && $tfoot)
+                {!! $tfoot !!}
+            @endif
         </table>
     </div>
 

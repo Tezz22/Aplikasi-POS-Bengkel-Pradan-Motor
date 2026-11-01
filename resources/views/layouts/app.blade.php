@@ -77,6 +77,71 @@
         html.sidebar-init-collapsed #app-sidebar .profile-link {
             justify-content: center !important;
         }
+
+        @media print {
+            @page {
+                size: A4 portrait;
+                margin: 10mm 12mm 12mm 12mm;
+            }
+            #app-sidebar, 
+            header, 
+            .topbar-actions, 
+            #form-filter-laporan, 
+            .export-buttons, 
+            .page-header-container,
+            [id$="-pagination-footer"],
+            .data-table-container > div:first-child,
+            [role="dialog"] {
+                display: none !important;
+            }
+            body, .h-screen, .w-screen, .overflow-hidden, .flex-1 {
+                height: auto !important;
+                width: 100% !important;
+                overflow: visible !important;
+                background: #ffffff !important;
+                color: #0f172a !important;
+            }
+            main {
+                overflow: visible !important;
+                padding: 0 !important;
+                margin: 0 !important;
+            }
+            .max-w-7xl {
+                max-width: 100% !important;
+                padding: 0 !important;
+            }
+            .data-table-container {
+                border: none !important;
+                box-shadow: none !important;
+                border-radius: 0 !important;
+                background: transparent !important;
+            }
+            /* Tampilkan seluruh baris data pada tabel cetak (override pagination js) */
+            .data-table-container table tbody tr {
+                display: table-row !important;
+            }
+            table {
+                width: 100% !important;
+                border-collapse: collapse !important;
+            }
+            table th, table td {
+                border: 1px solid #94a3b8 !important;
+                padding: 5px 8px !important;
+                font-size: 10.5px !important;
+                color: #0f172a !important;
+            }
+            table thead th {
+                background-color: #f1f5f9 !important;
+                font-weight: 700 !important;
+                text-transform: uppercase !important;
+                border-bottom: 2px solid #475569 !important;
+            }
+            table tfoot td {
+                background-color: #f8fafc !important;
+                font-weight: 700 !important;
+                border-top: 2px solid #475569 !important;
+            }
+        }
     </style>
     <script>
         // Check stored sidebar state to prevent flicker
@@ -155,6 +220,27 @@
             </main>
         </div>
     </div>
+
+    {{-- Modal Konfirmasi Logout --}}
+    <x-modal 
+        id="modal-logout" 
+        title="Konfirmasi Logout" 
+        :formAction="route('logout')"
+        formMethod="POST"
+        submitText="Logout"
+        submitVariant="danger"
+        size="sm"
+    >
+        <div class="text-center py-2">
+            <div class="w-14 h-14 rounded-2xl bg-rose-50 text-rose-600 border border-rose-100 flex items-center justify-center mx-auto mb-3.5 shadow-2xs">
+                @include('components.icon', ['name' => 'logout', 'size' => 26])
+            </div>
+            <h4 class="text-sm font-bold text-gray-900 mb-1.5">Keluar dari Sistem?</h4>
+            <p class="text-xs text-gray-500 leading-relaxed max-w-[280px] mx-auto">
+                Apakah Anda yakin ingin keluar? Pastikan semua transaksi atau data yang sedang dikerjakan telah disimpan.
+            </p>
+        </div>
+    </x-modal>
 
     <!-- Global Helpers for Table Pagination, Search & Modal -->
     <script>

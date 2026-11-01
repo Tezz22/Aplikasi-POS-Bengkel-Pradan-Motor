@@ -10,7 +10,7 @@
     $icon = $icon ?? 'dashboard';
 @endphp
 
-<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+<div class="page-header-container flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6 print:hidden">
     <div class="flex items-center gap-3.5">
         <div class="w-12 h-12 rounded-2xl bg-blue-50 border border-blue-100 text-blue-600 flex items-center justify-center shrink-0 shadow-xs">
             @include('components.icon', ['name' => $icon, 'size' => 24])
