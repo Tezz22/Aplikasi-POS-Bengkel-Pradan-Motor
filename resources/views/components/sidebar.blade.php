@@ -194,16 +194,16 @@
     </nav>
 
     <!-- User Profile Footer (Fixed at the bottom of the sidebar at all times) -->
-    <div class="shrink-0 p-3.5 border-t border-[#222d47] flex items-center bg-[#131a29]/90 z-20 profile-container">
+    <div class="shrink-0 p-3.5 border-t border-[#222d47] flex items-center justify-between bg-[#131a29]/90 z-20 profile-container">
         <a href="{{ $isAdmin ? route('admin.profil') : route('kasir.profil') }}" 
-           class="profile-link flex items-center gap-3 w-full group"
-           title="{{ auth()->user()->name ?? ($isAdmin ? 'Tezzy' : 'Joo') }} ({{ ucfirst(auth()->user()->role ?? ($isAdmin ? 'Admin' : 'Kasir')) }})">
+           class="profile-link flex items-center gap-3 min-w-0 flex-1 group"
+           title="{{ auth()->user()->nama ?? auth()->user()->name ?? ($isAdmin ? 'Tezzy' : 'Joo') }} ({{ ucfirst(auth()->user()->role ?? ($isAdmin ? 'Admin' : 'Kasir')) }})">
             <div class="w-9 h-9 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-slate-300 group-hover:bg-blue-600 group-hover:text-white group-hover:border-blue-500 transition-all shadow-xs shrink-0">
                 @include('components.icon', ['name' => 'user', 'size' => 18])
             </div>
             <div class="sidebar-text flex-1 min-w-0">
                 <p class="text-sm font-semibold text-white truncate group-hover:text-blue-300 transition-colors">
-                    {{ auth()->user()->name ?? ($isAdmin ? 'Tezzy' : 'Joo') }}
+                    {{ auth()->user()->nama ?? auth()->user()->name ?? ($isAdmin ? 'Tezzy' : 'Joo') }}
                 </p>
                 <p class="text-xs font-medium text-blue-400 capitalize">
                     {{ auth()->user()->role ?? ($isAdmin ? 'Admin' : 'Kasir') }}
