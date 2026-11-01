@@ -19,12 +19,12 @@
         id="table-barang" 
         :searchable="true" 
         searchPlaceholder="Cari data barang..." 
-        :headers="['ID', 'NAMA PRODUK', 'KATEGORI', 'SATUAN', 'HARGA JUAL', 'STOK', 'AKSI']"
+        :headers="['NO', 'NAMA PRODUK', 'KATEGORI', 'SATUAN', 'HARGA JUAL', 'STOK', 'AKSI']"
     >
         @forelse($barangs as $barang)
             <tr class="hover:bg-slate-50/70 transition-colors">
-                <td class="py-3.5 px-4 first:pl-6 font-bold text-gray-500">
-                    #{{ $barang->id_barang }}
+                <td class="py-3.5 px-4 first:pl-6 font-semibold text-gray-500">
+                    {{ $loop->iteration }}
                 </td>
                 <td class="py-3.5 px-4 font-semibold text-gray-900">{{ $barang->nama_barang }}</td>
                 <td class="py-3.5 px-4 text-gray-600">{{ $barang->kategori->nama_kategori ?? '-' }}</td>

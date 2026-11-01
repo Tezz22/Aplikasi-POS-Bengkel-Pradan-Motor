@@ -17,11 +17,11 @@
         id="table-kategori" 
         :searchable="true" 
         searchPlaceholder="Cari kategori..." 
-        :headers="['ID', 'NAMA KATEGORI', 'JUMLAH ITEM', 'AKSI']"
+        :headers="['NO', 'NAMA KATEGORI', 'JUMLAH ITEM', 'AKSI']"
     >
         @forelse($kategoris as $kategori)
             <tr class="hover:bg-slate-50/70 transition-colors">
-                <td class="py-3.5 px-4 first:pl-6 font-bold text-gray-500">#{{ $kategori->id_kategori }}</td>
+                <td class="py-3.5 px-4 first:pl-6 font-semibold text-gray-500">{{ $loop->iteration }}</td>
                 <td class="py-3.5 px-4 font-semibold text-gray-900">{{ $kategori->nama_kategori }}</td>
                 <td class="py-3.5 px-4">
                     <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-50 text-blue-700">

@@ -82,7 +82,7 @@
                                 $headerText = is_array($header) ? ($header['text'] ?? '') : $header;
                                 $headerClass = is_array($header) ? ($header['class'] ?? '') : '';
                                 $canSortThis = is_array($header) ? ($header['sortable'] ?? true) : true;
-                                if (in_array(strtoupper(trim($headerText)), ['AKSI', 'ACTION', 'ACTIONS', ''])) {
+                                if (in_array(strtoupper(trim($headerText)), ['AKSI', 'ACTION', 'ACTIONS', 'NO', 'NO.', '#', 'NOMOR', ''])) {
                                     $canSortThis = false;
                                 }
                                 $isColSortable = $sortable && $canSortThis;

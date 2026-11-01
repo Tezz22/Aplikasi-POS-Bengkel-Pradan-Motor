@@ -51,14 +51,14 @@
         id="table-stok-opname" 
         :searchable="true" 
         searchPlaceholder="Cari tanggal, keterangan, atau pencatat...." 
-        :headers="['ID SESI', 'TANGGAL & WAKTU', 'ITEM DIPERIKSA', 'STATUS SELISIH', 'KETERANGAN', 'DICATAT OLEH', 'AKSI']"
+        :headers="['NO', 'TANGGAL & WAKTU', 'ITEM DIPERIKSA', 'STATUS SELISIH', 'KETERANGAN', 'DICATAT OLEH', 'AKSI']"
     >
         @forelse($opnames as $opname)
             @php
                 $selisihCount = $opname->details->filter(fn($d) => $d->stok_fisik != $d->stok_sistem)->count();
             @endphp
             <tr class="hover:bg-slate-50/70 transition-colors">
-                <td class="py-3.5 px-4 first:pl-6 font-bold text-gray-500">#OPN-{{ str_pad($opname->id_opname, 3, '0', STR_PAD_LEFT) }}</td>
+                <td class="py-3.5 px-4 first:pl-6 font-semibold text-gray-500">{{ $loop->iteration }}</td>
                 <td class="py-3.5 px-4 text-gray-700">{{ \Carbon\Carbon::parse($opname->tanggal)->translatedFormat('d M Y, H:i') }}</td>
                 <td class="py-3.5 px-4 text-gray-700 font-medium">{{ $opname->details->count() }} item</td>
                 <td class="py-3.5 px-4">
@@ -115,7 +115,7 @@
                         @foreach($opname->details as $d)
                             @php $diff = $d->stok_fisik - $d->stok_sistem; @endphp
                             <tr>
-                                <td class="p-3 font-semibold text-gray-800">{{ $d->barang->nama_barang ?? 'Barang #' . $d->id_barang }}</td>
+                                <td class="p-3 font-semibold text-gray-800">{{ $d->barang->nama_barang ?? 'Barang (Tidak ditemukan)' }}</td>
                                 <td class="p-3 text-center">{{ $d->stok_sistem }}</td>
                                 <td class="p-3 text-center font-bold">{{ $d->stok_fisik }}</td>
                                 <td class="p-3 text-center font-bold {{ $diff < 0 ? 'text-rose-600' : ($diff > 0 ? 'text-emerald-600' : 'text-gray-400') }}">

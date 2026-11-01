@@ -184,6 +184,10 @@
                 this.searchQuery = '';
                 this.currentSort = { colIndex: null, direction: null };
 
+                const firstTh = this.table.querySelector('thead th:first-child');
+                const firstThText = firstTh ? firstTh.innerText.toLowerCase().trim() : '';
+                this.hasNumberCol = ['no', 'no.', '#', 'nomor'].includes(firstThText);
+
                 this.refreshRows();
                 this.bindEvents();
                 this.updatePerPageButtons();
@@ -242,7 +246,7 @@
                 ths.forEach((th, idx) => {
                     const text = th.innerText.toLowerCase().trim();
                     const isExcluded = th.dataset.sortable === 'false' || 
-                                       ['aksi', 'action', 'actions', ''].includes(text);
+                                       ['aksi', 'action', 'actions', 'no', 'no.', '#', 'nomor', ''].includes(text);
                     if (isExcluded) return;
 
                     th.classList.add('cursor-pointer', 'select-none', 'group');
@@ -541,8 +545,12 @@
                         this.initialEmptyRow.style.display = 'none';
                     }
                     for (let i = startIndex; i < endIndex; i++) {
-                        if (this.filteredRows[i]) {
-                            this.filteredRows[i].style.display = '';
+                        const row = this.filteredRows[i];
+                        if (row) {
+                            row.style.display = '';
+                            if (this.hasNumberCol && row.children && row.children[0]) {
+                                row.children[0].textContent = (i + 1).toString();
+                            }
                         }
                     }
                 }

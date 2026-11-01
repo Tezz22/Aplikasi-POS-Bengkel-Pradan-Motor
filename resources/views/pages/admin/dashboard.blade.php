@@ -138,7 +138,7 @@
                 <table class="w-full text-left text-xs">
                     <thead>
                         <tr class="text-[10px] uppercase tracking-wider text-gray-400 font-semibold border-b border-gray-50">
-                            <th class="py-2.5">ID TRX</th>
+                            <th class="py-2.5">NO. TRANSAKSI</th>
                             <th class="py-2.5">PELANGGAN</th>
                             <th class="py-2.5 text-right">TOTAL</th>
                         </tr>

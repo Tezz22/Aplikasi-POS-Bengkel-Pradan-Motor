@@ -35,7 +35,7 @@
                                 <span class="text-[10px] {{ $barang->stok <= 5 ? 'text-rose-500 font-bold' : 'text-gray-400' }}">Stok: {{ $barang->stok }} {{ $barang->satuan }}</span>
                             </div>
                             <h4 class="font-bold text-gray-900 text-xs mt-2">{{ $barang->nama_barang }}</h4>
-                            <p class="text-[11px] text-gray-400 font-medium">#{{ $barang->id_barang }} &bull; {{ $barang->satuan }}</p>
+                            <p class="text-[11px] text-gray-400 font-medium">{{ $barang->satuan }}</p>
                         </div>
                         <div class="flex items-center justify-between mt-3 pt-2 border-t border-gray-50">
                             <span class="font-bold text-gray-900 text-sm">Rp {{ number_format($barang->harga_jual, 0, ',', '.') }}</span>
@@ -61,7 +61,7 @@
                                 <span class="text-[10px] text-gray-400">Jasa Bengkel</span>
                             </div>
                             <h4 class="font-bold text-gray-900 text-xs mt-2">{{ $jasa->nama_jasa }}</h4>
-                            <p class="text-[11px] text-gray-400 font-medium">#{{ $jasa->id_jasa }}</p>
+                            <p class="text-[11px] text-gray-400 font-medium">Tarif Tetap</p>
                         </div>
                         <div class="flex items-center justify-between mt-3 pt-2 border-t border-gray-50">
                             <span class="font-bold text-gray-900 text-sm">Rp {{ number_format($jasa->tarif, 0, ',', '.') }}</span>

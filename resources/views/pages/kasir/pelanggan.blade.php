@@ -22,11 +22,11 @@
         id="table-pelanggan-kasir" 
         :searchable="true" 
         searchPlaceholder="Cari plat nomor atau nama pelanggan..." 
-        :headers="['ID', 'NAMA PELANGGAN', 'PLAT NOMOR', 'NO. TELEPON', 'AKSI']"
+        :headers="['NO', 'NAMA PELANGGAN', 'PLAT NOMOR', 'NO. TELEPON', 'AKSI']"
     >
         @forelse($pelanggans as $pelanggan)
             <tr class="hover:bg-slate-50/70 transition-colors">
-                <td class="py-3.5 px-4 first:pl-6 font-bold text-gray-500">#{{ $pelanggan->id_pelanggan }}</td>
+                <td class="py-3.5 px-4 first:pl-6 font-semibold text-gray-500">{{ $loop->iteration }}</td>
                 <td class="py-3.5 px-4 font-semibold text-gray-900">{{ $pelanggan->nama }}</td>
                 <td class="py-3.5 px-4 font-bold text-blue-600">{{ $pelanggan->plat_nomor ?? '-' }}</td>
                 <td class="py-3.5 px-4 text-gray-600">{{ $pelanggan->no_telepon ?? '-' }}</td>

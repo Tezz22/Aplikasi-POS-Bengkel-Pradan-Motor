@@ -17,11 +17,11 @@
         id="table-layanan" 
         :searchable="true" 
         searchPlaceholder="Cari jenis servis / jasa..." 
-        :headers="['ID', 'NAMA JASA / LAYANAN', 'TARIF JASA', 'AKSI']"
+        :headers="['NO', 'NAMA JASA / LAYANAN', 'TARIF JASA', 'AKSI']"
     >
         @forelse($layanans as $layanan)
             <tr class="hover:bg-slate-50/70 transition-colors">
-                <td class="py-3.5 px-4 first:pl-6 font-bold text-gray-500">#{{ $layanan->id_jasa }}</td>
+                <td class="py-3.5 px-4 first:pl-6 font-semibold text-gray-500">{{ $loop->iteration }}</td>
                 <td class="py-3.5 px-4 font-semibold text-gray-900">{{ $layanan->nama_jasa }}</td>
                 <td class="py-3.5 px-4 font-medium text-gray-900">Rp {{ number_format($layanan->tarif, 0, ',', '.') }}</td>
                 <td class="py-3.5 px-4 last:pr-6">
