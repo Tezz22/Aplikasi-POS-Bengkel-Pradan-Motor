@@ -8,7 +8,9 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Kategori extends Model
 {
     protected $table = 'ms_kategori';
+
     protected $primaryKey = 'id_kategori';
+
     public $timestamps = false;
 
     protected $fillable = [

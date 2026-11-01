@@ -8,7 +8,9 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class Pembelian extends Model
 {
     protected $table = 'tr_pembelian';
+
     protected $primaryKey = 'id_tr_pembelian';
+
     const UPDATED_AT = null;
 
     protected $fillable = [

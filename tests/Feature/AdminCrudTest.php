@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Barang;
+use App\Models\Jasa;
 use App\Models\Kategori;
 use App\Models\Pelanggan;
 use App\Models\Pembelian;
@@ -10,7 +11,6 @@ use App\Models\Penjualan;
 use App\Models\PenjualanDetail;
 use App\Models\Supplier;
 use App\Models\User;
-use App\Models\Jasa;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -268,37 +268,38 @@ class AdminCrudTest extends TestCase
     {
         $kategori = Kategori::create(['nama_kategori' => 'Ban Motor']);
 
-        // Create
+        // Create: Aturan bisnis baru: stok awal selalu otomatis 0
         $response = $this->actingAs($this->admin)->post(route('admin.barang.store'), [
             'id_kategori' => $kategori->id_kategori,
             'nama_barang' => 'Ban Luar Tubeless 90/90-14',
             'satuan' => 'Pcs',
             'harga_jual' => 195000,
-            'stok' => 15,
+            'stok' => 15, // Input stok bebas harus diabaikan / dipaksa menjadi 0
         ]);
         $response->assertRedirect(route('admin.barang'));
         $this->assertDatabaseHas('ms_barang', [
             'nama_barang' => 'Ban Luar Tubeless 90/90-14',
-            'stok' => 15,
+            'stok' => 0,
             'harga_jual' => 195000,
         ]);
 
         $barang = Barang::where('nama_barang', 'Ban Luar Tubeless 90/90-14')->first();
+        $this->assertEquals(0, $barang->stok);
 
-        // Update
+        // Update: Informasi berubah, namun stok tetap tidak dapat diubah dari form edit master barang
         $updateResponse = $this->actingAs($this->admin)->put(route('admin.barang.update', $barang), [
             'id_kategori' => $kategori->id_kategori,
             'nama_barang' => 'Ban Tubeless 90/90-14 Pro',
             'satuan' => 'Pcs',
             'harga_jual' => 210000,
-            'stok' => 20,
+            'stok' => 20, // Tidak boleh mengubah stok
         ]);
         $updateResponse->assertRedirect(route('admin.barang'));
         $this->assertDatabaseHas('ms_barang', [
             'id_barang' => $barang->id_barang,
             'nama_barang' => 'Ban Tubeless 90/90-14 Pro',
             'harga_jual' => 210000,
-            'stok' => 20,
+            'stok' => 0, // Stok tetap 0
         ]);
 
         // Delete
@@ -347,7 +348,7 @@ class AdminCrudTest extends TestCase
 
         // Stok barang harus berkurang kembali: 25 - 15 = 10
         $this->assertEquals(10, $barang->fresh()->stok);
-        $this->assertDatabaseMissing('tr_pembelian', ['id_pembelian' => $pembelian->id_pembelian]);
+        $this->assertDatabaseMissing('tr_pembelian', ['id_tr_pembelian' => $pembelian->id_tr_pembelian]);
     }
 
     public function test_admin_stok_opname_synchronizes_physical_stock(): void
@@ -426,5 +427,232 @@ class AdminCrudTest extends TestCase
         // Transaksi terhapus dan stok dikembalikan: 8 + 2 = 10
         $this->assertEquals(10, $barang->fresh()->stok);
         $this->assertDatabaseMissing('tr_penjualan', ['id_transaksi' => $penjualan->id_transaksi]);
+    }
+
+    public function test_barang_masuk_multiple_items_increments_all_stock(): void
+    {
+        $kategori = Kategori::create(['nama_kategori' => 'Pelumas']);
+        $supplier = Supplier::create(['nama_supplier' => 'Pertamina Lubricants']);
+        $barang1 = Barang::create([
+            'id_kategori' => $kategori->id_kategori,
+            'nama_barang' => 'Fastron Gold 1L',
+            'satuan' => 'Botol',
+            'harga_jual' => 90000,
+            'stok' => 5,
+        ]);
+        $barang2 = Barang::create([
+            'id_kategori' => $kategori->id_kategori,
+            'nama_barang' => 'Enduro Matic 0.8L',
+            'satuan' => 'Botol',
+            'harga_jual' => 48000,
+            'stok' => 10,
+        ]);
+
+        $response = $this->actingAs($this->admin)->post(route('admin.barang-masuk.store'), [
+            'no_referensi' => 'BM-BATCH-001',
+            'tanggal' => now()->toDateString(),
+            'id_supplier' => $supplier->id_supplier,
+            'keterangan' => 'Pengadaan batch pelumas',
+            'items' => [
+                [
+                    'id_barang' => $barang1->id_barang,
+                    'jumlah' => 10,
+                    'harga_beli' => 75000,
+                ],
+                [
+                    'id_barang' => $barang2->id_barang,
+                    'jumlah' => 20,
+                    'harga_beli' => 38000,
+                ],
+            ],
+        ]);
+        $response->assertRedirect(route('admin.barang-masuk'));
+
+        // Seluruh stok bertambah sesuai detail: 5+10 = 15, 10+20 = 30
+        $this->assertEquals(15, $barang1->fresh()->stok);
+        $this->assertEquals(30, $barang2->fresh()->stok);
+    }
+
+    public function test_barang_masuk_invalid_barang_and_quantity_rejected(): void
+    {
+        $supplier = Supplier::create(['nama_supplier' => 'Astra Otoparts']);
+
+        // 1. ID barang tidak valid
+        $responseInvalidBarang = $this->actingAs($this->admin)->post(route('admin.barang-masuk.store'), [
+            'no_referensi' => 'BM-ERR-001',
+            'tanggal' => now()->toDateString(),
+            'id_supplier' => $supplier->id_supplier,
+            'id_barang' => 999999,
+            'jumlah' => 5,
+            'harga_beli' => 10000,
+        ]);
+        $responseInvalidBarang->assertSessionHasErrors('id_barang');
+
+        // 2. Kuantitas 0 atau negatif
+        $kategori = Kategori::create(['nama_kategori' => 'Filter']);
+        $barang = Barang::create([
+            'id_kategori' => $kategori->id_kategori,
+            'nama_barang' => 'Filter Udara',
+            'satuan' => 'Pcs',
+            'harga_jual' => 35000,
+            'stok' => 0,
+        ]);
+
+        $responseZeroQty = $this->actingAs($this->admin)->post(route('admin.barang-masuk.store'), [
+            'no_referensi' => 'BM-ERR-002',
+            'tanggal' => now()->toDateString(),
+            'id_supplier' => $supplier->id_supplier,
+            'id_barang' => $barang->id_barang,
+            'jumlah' => 0,
+            'harga_beli' => 20000,
+        ]);
+        $responseZeroQty->assertSessionHasErrors('jumlah');
+        $this->assertEquals(0, $barang->fresh()->stok);
+    }
+
+    public function test_barang_masuk_deletion_rejected_when_stock_insufficient(): void
+    {
+        $kategori = Kategori::create(['nama_kategori' => 'Rantai']);
+        $supplier = Supplier::create(['nama_supplier' => 'DID Chain']);
+        $barang = Barang::create([
+            'id_kategori' => $kategori->id_kategori,
+            'nama_barang' => 'Rantai 428H',
+            'satuan' => 'Set',
+            'harga_jual' => 120000,
+            'stok' => 0,
+        ]);
+
+        // Catat barang masuk 10 pcs
+        $this->actingAs($this->admin)->post(route('admin.barang-masuk.store'), [
+            'no_referensi' => 'BM-TEST-DEL-01',
+            'tanggal' => now()->toDateString(),
+            'id_supplier' => $supplier->id_supplier,
+            'id_barang' => $barang->id_barang,
+            'jumlah' => 10,
+            'harga_beli' => 80000,
+        ]);
+
+        $pembelian = Pembelian::where('no_referensi', 'BM-TEST-DEL-01')->first();
+        $this->assertEquals(10, $barang->fresh()->stok);
+
+        // Simulasikan 8 pcs terjual, sisa stok tinggal 2 pcs
+        $barang->update(['stok' => 2]);
+
+        // Coba batalkan/hapus barang masuk (10 pcs). Harus ditolak karena stok sisa hanya 2 pcs!
+        $response = $this->actingAs($this->admin)->delete(route('admin.barang-masuk.destroy', $pembelian));
+        $response->assertRedirect(route('admin.barang-masuk'));
+        $response->assertSessionHas('error');
+
+        // Data pembelian tidak terhapus dan stok tetap 2 (tidak negatif)
+        $this->assertDatabaseHas('tr_pembelian', ['id_tr_pembelian' => $pembelian->id_tr_pembelian]);
+        $this->assertEquals(2, $barang->fresh()->stok);
+    }
+
+    public function test_penjualan_pos_decrements_stock_successfully(): void
+    {
+        $kategori = Kategori::create(['nama_kategori' => 'Ban']);
+        $barang = Barang::create([
+            'id_kategori' => $kategori->id_kategori,
+            'nama_barang' => 'Ban Tubeless Corsa',
+            'satuan' => 'Pcs',
+            'harga_jual' => 150000,
+            'stok' => 10,
+        ]);
+        $jasa = Jasa::create([
+            'nama_jasa' => 'Pasang Ban Tubeless',
+            'tarif' => 20000,
+        ]);
+
+        $kasir = User::factory()->create([
+            'role' => 'kasir',
+            'status' => 'aktif',
+        ]);
+
+        // Proses transaksi POS: beli 2 ban + 1 jasa pasang
+        // Total = (2 * 150.000) + 20.000 = 320.000, bayar 350.000, kembalian 30.000
+        $response = $this->actingAs($kasir)->post(route('kasir.transaksi.store'), [
+            'nominal_bayar' => 350000,
+            'items' => [
+                [
+                    'jenis' => 'barang',
+                    'id' => $barang->id_barang,
+                    'qty' => 2,
+                ],
+                [
+                    'jenis' => 'jasa',
+                    'id' => $jasa->id_jasa,
+                    'qty' => 1,
+                ],
+            ],
+        ]);
+        $response->assertRedirect(route('kasir.transaksi'));
+        $response->assertSessionHas('status');
+
+        // Stok barang harus berkurang dari 10 menjadi 8
+        $this->assertEquals(8, $barang->fresh()->stok);
+
+        // Header dan detail penjualan tersimpan
+        $penjualan = Penjualan::latest('id_transaksi')->first();
+        $this->assertEquals(320000, $penjualan->total);
+        $this->assertEquals(30000, $penjualan->kembalian);
+        $this->assertDatabaseHas('detail_penjualan', [
+            'id_transaksi' => $penjualan->id_transaksi,
+            'id_barang' => $barang->id_barang,
+            'qty' => 2,
+        ]);
+    }
+
+    public function test_penjualan_pos_rejected_when_stock_insufficient(): void
+    {
+        $kategori = Kategori::create(['nama_kategori' => 'Oli']);
+        $barang = Barang::create([
+            'id_kategori' => $kategori->id_kategori,
+            'nama_barang' => 'Oli Yamalube 0.8L',
+            'satuan' => 'Botol',
+            'harga_jual' => 50000,
+            'stok' => 3, // Hanya tersedia 3 botol
+        ]);
+
+        $kasir = User::factory()->create([
+            'role' => 'kasir',
+            'status' => 'aktif',
+        ]);
+
+        // Kasir mencoba menjual 5 botol (melebihi stok)
+        $response = $this->actingAs($kasir)->post(route('kasir.transaksi.store'), [
+            'nominal_bayar' => 250000,
+            'items' => [
+                [
+                    'jenis' => 'barang',
+                    'id' => $barang->id_barang,
+                    'qty' => 5,
+                ],
+            ],
+        ]);
+        $response->assertSessionHasErrors('items');
+
+        // Stok tidak berubah
+        $this->assertEquals(3, $barang->fresh()->stok);
+    }
+
+    public function test_cashier_cannot_access_admin_routes(): void
+    {
+        $kasir = User::factory()->create([
+            'role' => 'kasir',
+            'status' => 'aktif',
+        ]);
+
+        // Kasir mencoba mengakses endpoint khusus Admin
+        $response1 = $this->actingAs($kasir)->get(route('admin.dashboard'));
+        $response1->assertForbidden();
+
+        $response2 = $this->actingAs($kasir)->get(route('admin.barang'));
+        $response2->assertForbidden();
+
+        $response3 = $this->actingAs($kasir)->get(route('admin.barang-masuk'));
+        $response3->assertForbidden();
+
+        $response4 = $this->actingAs($kasir)->get(route('admin.pengguna'));
+        $response4->assertForbidden();
     }
 }

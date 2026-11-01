@@ -2,19 +2,18 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\User;
-use App\Models\Kategori;
 use App\Models\Barang;
-use App\Models\Pelanggan;
-use App\Models\Supplier;
 use App\Models\Jasa;
+use App\Models\Kategori;
+use App\Models\Opname;
+use App\Models\OpnameDetail;
+use App\Models\Pelanggan;
 use App\Models\Pembelian;
 use App\Models\Penjualan;
 use App\Models\PenjualanDetail;
-use App\Models\Opname;
-use App\Models\OpnameDetail;
+use App\Models\Supplier;
+use App\Models\User;
 use Carbon\Carbon;
-use Illuminate\Http\Request;
 
 class AdminController extends Controller
 {

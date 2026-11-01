@@ -182,6 +182,7 @@
                 this.perPage = !isNaN(initialPerPage) ? initialPerPage : (this.perPageSelect ? parseInt(this.perPageSelect.value, 10) : 10);
                 this.currentPage = 1;
                 this.searchQuery = '';
+                this.currentSort = { colIndex: null, direction: null };
 
                 this.refreshRows();
                 this.bindEvents();
@@ -203,7 +204,12 @@
                     }
                 });
 
-                this.applyFilter();
+                this.originalRows = [...this.allRows];
+                if (this.currentSort.colIndex !== null && this.currentSort.direction) {
+                    this.applySort(false);
+                } else {
+                    this.applyFilter();
+                }
             }
 
             bindEvents() {
@@ -224,6 +230,218 @@
                         this.setPerPage(parseInt(this.perPageSelect.value, 10) || 10);
                     });
                 }
+
+                this.bindSortEvents();
+            }
+
+            bindSortEvents() {
+                const thead = this.table.querySelector('thead');
+                if (!thead) return;
+
+                const ths = thead.querySelectorAll('th');
+                ths.forEach((th, idx) => {
+                    const text = th.innerText.toLowerCase().trim();
+                    const isExcluded = th.dataset.sortable === 'false' || 
+                                       ['aksi', 'action', 'actions', ''].includes(text);
+                    if (isExcluded) return;
+
+                    th.classList.add('cursor-pointer', 'select-none', 'group');
+                    if (!th.hasAttribute('title')) {
+                        th.setAttribute('title', 'Klik untuk mengurutkan (ASC / DESC)');
+                    }
+                    if (!th.hasAttribute('tabindex')) {
+                        th.setAttribute('tabindex', '0');
+                    }
+
+                    // Inject sort indicator if not pre-rendered by Blade component
+                    if (!th.querySelector('.data-table-sort-indicator')) {
+                        const rawContent = th.innerHTML;
+                        th.innerHTML = `
+                            <div class="inline-flex items-center gap-1.5">
+                                <span class="data-table-th-text transition-colors">${rawContent}</span>
+                                <span class="data-table-sort-indicator inline-flex items-center shrink-0 text-gray-300 transition-colors">
+                                    <svg class="sort-icon-idle w-3 h-3 group-hover:text-gray-500 transition-colors" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="m7 15 5 5 5-5"/>
+                                        <path d="m7 9 5-5 5 5"/>
+                                    </svg>
+                                    <svg class="sort-icon-asc w-3 h-3 text-blue-600 hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                        <polyline points="18 15 12 9 6 15"/>
+                                    </svg>
+                                    <svg class="sort-icon-desc w-3 h-3 text-blue-600 hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                        <polyline points="6 9 12 15 18 9"/>
+                                    </svg>
+                                </span>
+                            </div>
+                        `;
+                    }
+
+                    const triggerSort = (e) => {
+                        e.preventDefault();
+                        this.sortBy(idx);
+                    };
+
+                    th.addEventListener('click', triggerSort);
+                    th.addEventListener('keydown', (e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                            triggerSort(e);
+                        }
+                    });
+                });
+            }
+
+            sortBy(colIndex) {
+                let nextDirection = 'asc';
+                if (this.currentSort.colIndex === colIndex) {
+                    nextDirection = this.currentSort.direction === 'asc' ? 'desc' : 'asc';
+                }
+
+                this.currentSort = { colIndex, direction: nextDirection };
+                this.applySort(true);
+                this.updateSortUI();
+                this.currentPage = 1;
+                this.render();
+            }
+
+            applySort(reorderDOM = true) {
+                if (this.currentSort.colIndex === null || !this.currentSort.direction) {
+                    this.applyFilter();
+                    return;
+                }
+
+                const { colIndex, direction } = this.currentSort;
+                const factor = direction === 'asc' ? 1 : -1;
+
+                this.allRows.sort((rowA, rowB) => {
+                    const cellA = rowA.children[colIndex];
+                    const cellB = rowB.children[colIndex];
+                    const valA = this.getCellValue(cellA);
+                    const valB = this.getCellValue(cellB);
+
+                    if (typeof valA === 'number' && typeof valB === 'number') {
+                        return (valA - valB) * factor;
+                    }
+
+                    return String(valA).localeCompare(String(valB), 'id', { numeric: true, sensitivity: 'base' }) * factor;
+                });
+
+                if (reorderDOM) {
+                    this.allRows.forEach(tr => this.tbody.appendChild(tr));
+                }
+
+                this.applyFilter();
+            }
+
+            getCellValue(cell) {
+                if (!cell) return '';
+                if (cell.dataset.sort !== undefined) return cell.dataset.sort;
+                if (cell.dataset.value !== undefined) return cell.dataset.value;
+
+                const raw = cell.innerText.trim();
+                if (!raw || raw === '-') return '';
+
+                // Indonesian Rupiah: "Rp 52.000", "Rp 1.500.000", "Rp. 25.000,00"
+                const rpMatch = raw.match(/^rp\.?\s*([0-9.,]+)/i);
+                if (rpMatch) {
+                    const numStr = rpMatch[1].replace(/\./g, '').replace(',', '.');
+                    const num = parseFloat(numStr);
+                    if (!isNaN(num)) return num;
+                }
+
+                // Hashtag ID: "#12"
+                if (/^#\d+$/.test(raw)) {
+                    return parseInt(raw.substring(1), 10);
+                }
+
+                // Carbon date with month in Indonesian: e.g. "31 Okt 2026, 14:30" or "12 Jan 2026"
+                const dateMatch = raw.match(/^(\d{1,2})\s+([a-zA-Z]+)\s+(\d{4})(?:,\s*(\d{1,2}):(\d{2}))?/);
+                if (dateMatch) {
+                    const months = {
+                        jan: 0, januari: 0, feb: 1, februari: 1, mar: 2, maret: 2,
+                        apr: 3, april: 3, mei: 4, may: 4, jun: 5, juni: 5,
+                        jul: 6, juli: 6, agu: 7, agustus: 7, agt: 7, aug: 7,
+                        sep: 8, september: 8, okt: 9, oktober: 9, oct: 9,
+                        nov: 10, november: 10, des: 11, desember: 11, dec: 11
+                    };
+                    const mKey = dateMatch[2].toLowerCase();
+                    if (months[mKey] !== undefined) {
+                        const day = parseInt(dateMatch[1], 10);
+                        const month = months[mKey];
+                        const year = parseInt(dateMatch[3], 10);
+                        const hour = dateMatch[4] ? parseInt(dateMatch[4], 10) : 0;
+                        const min = dateMatch[5] ? parseInt(dateMatch[5], 10) : 0;
+                        return new Date(year, month, day, hour, min).getTime();
+                    }
+                }
+
+                // ISO date: "2026-10-31" or "2026-10-31 14:30:00"
+                if (/^\d{4}-\d{2}-\d{2}/.test(raw)) {
+                    const t = Date.parse(raw);
+                    if (!isNaN(t)) return t;
+                }
+
+                // Number with unit/suffix, e.g. "10 Item", "5 Pcs", "90%"
+                const suffixNumMatch = raw.match(/^([0-9]+(?:\.[0-9]+)?)\s*[a-zA-Z%]+$/);
+                if (suffixNumMatch && !raw.includes('-')) {
+                    const num = parseFloat(suffixNumMatch[1]);
+                    if (!isNaN(num)) return num;
+                }
+
+                // Pure number or Indonesian thousand separated integer e.g. "1.500" or "50"
+                const cleanNum = raw.replace(/\./g, '').replace(',', '.');
+                if (/^-?\d+(\.\d+)?$/.test(cleanNum) && !raw.includes('-')) {
+                    const num = parseFloat(cleanNum);
+                    if (!isNaN(num)) return num;
+                }
+
+                return raw;
+            }
+
+            updateSortUI() {
+                const thead = this.table.querySelector('thead');
+                if (!thead) return;
+
+                const ths = thead.querySelectorAll('th');
+                ths.forEach((th, idx) => {
+                    const indicator = th.querySelector('.data-table-sort-indicator');
+                    const textSpan = th.querySelector('.data-table-th-text');
+                    if (!indicator) return;
+
+                    const iconIdle = indicator.querySelector('.sort-icon-idle');
+                    const iconAsc = indicator.querySelector('.sort-icon-asc');
+                    const iconDesc = indicator.querySelector('.sort-icon-desc');
+
+                    if (this.currentSort.colIndex === idx) {
+                        th.classList.add('bg-blue-50/70');
+                        if (textSpan) {
+                            textSpan.classList.add('text-blue-600', 'font-bold');
+                            textSpan.classList.remove('text-gray-400');
+                        }
+
+                        if (this.currentSort.direction === 'asc') {
+                            th.setAttribute('aria-sort', 'ascending');
+                            th.setAttribute('title', 'Diurutkan ASC (A-Z / Kecil-Besar). Klik untuk DESC.');
+                            if (iconIdle) iconIdle.classList.add('hidden');
+                            if (iconAsc) iconAsc.classList.remove('hidden');
+                            if (iconDesc) iconDesc.classList.add('hidden');
+                        } else {
+                            th.setAttribute('aria-sort', 'descending');
+                            th.setAttribute('title', 'Diurutkan DESC (Z-A / Besar-Kecil). Klik untuk ASC.');
+                            if (iconIdle) iconIdle.classList.add('hidden');
+                            if (iconAsc) iconAsc.classList.add('hidden');
+                            if (iconDesc) iconDesc.classList.remove('hidden');
+                        }
+                    } else {
+                        th.classList.remove('bg-blue-50/70');
+                        th.setAttribute('aria-sort', 'none');
+                        th.setAttribute('title', 'Klik untuk mengurutkan (ASC / DESC)');
+                        if (textSpan) {
+                            textSpan.classList.remove('text-blue-600', 'font-bold');
+                        }
+                        if (iconIdle) iconIdle.classList.remove('hidden');
+                        if (iconAsc) iconAsc.classList.add('hidden');
+                        if (iconDesc) iconDesc.classList.add('hidden');
+                    }
+                });
             }
 
             setPerPage(val) {
@@ -271,7 +489,8 @@
             render() {
                 const totalOriginal = this.allRows.length;
                 const total = this.filteredRows.length;
-                const totalPages = Math.max(1, Math.ceil(total / this.perPage));
+                const isPaginated = this.container.dataset.paginate !== 'false';
+                const totalPages = isPaginated ? Math.max(1, Math.ceil(total / this.perPage)) : 1;
 
                 if (this.currentPage > totalPages) {
                     this.currentPage = totalPages;
@@ -280,8 +499,8 @@
                     this.currentPage = 1;
                 }
 
-                const startIndex = (this.currentPage - 1) * this.perPage;
-                const endIndex = Math.min(startIndex + this.perPage, total);
+                const startIndex = isPaginated ? (this.currentPage - 1) * this.perPage : 0;
+                const endIndex = isPaginated ? Math.min(startIndex + this.perPage, total) : total;
 
                 // Hide all standard rows first
                 this.allRows.forEach(row => {
@@ -328,8 +547,10 @@
                     }
                 }
 
-                this.renderInfo(totalOriginal, total, startIndex, endIndex);
-                this.renderControls(totalPages, total);
+                if (isPaginated) {
+                    this.renderInfo(totalOriginal, total, startIndex, endIndex);
+                    this.renderControls(totalPages, total);
+                }
             }
 
             renderInfo(totalOriginal, total, startIndex, endIndex) {
@@ -458,7 +679,7 @@
         window.TablePagination = TablePagination;
 
         window.initDataTables = function() {
-            document.querySelectorAll('.data-table-container[data-paginate="true"]').forEach(container => {
+            document.querySelectorAll('.data-table-container').forEach(container => {
                 if (!container.tablePagination) {
                     new TablePagination(container);
                 } else {

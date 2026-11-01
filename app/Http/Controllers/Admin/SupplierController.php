@@ -19,13 +19,13 @@ class SupplierController extends Controller
     {
         $validated = $request->validate([
             'nama_supplier' => ['required', 'string', 'max:50'],
-            'no_telepon'   => ['nullable', 'string', 'max:15'],
-            'alamat'        => ['nullable', 'string', 'max:255'],
+            'no_telepon' => ['nullable', 'string', 'max:15'],
+            'alamat' => ['nullable', 'string', 'max:255'],
         ], [
             'nama_supplier.required' => 'Nama supplier / distributor wajib diisi.',
-            'nama_supplier.max'      => 'Nama supplier maksimal 50 karakter.',
-            'no_telepon.max'         => 'Nomor telepon maksimal 15 karakter.',
-            'alamat.max'             => 'Alamat maksimal 255 karakter.',
+            'nama_supplier.max' => 'Nama supplier maksimal 50 karakter.',
+            'no_telepon.max' => 'Nomor telepon maksimal 15 karakter.',
+            'alamat.max' => 'Alamat maksimal 255 karakter.',
         ]);
 
         Supplier::create($validated);
@@ -37,13 +37,13 @@ class SupplierController extends Controller
     {
         $validated = $request->validate([
             'nama_supplier' => ['required', 'string', 'max:50'],
-            'no_telepon'   => ['nullable', 'string', 'max:15'],
-            'alamat'        => ['nullable', 'string', 'max:255'],
+            'no_telepon' => ['nullable', 'string', 'max:15'],
+            'alamat' => ['nullable', 'string', 'max:255'],
         ], [
             'nama_supplier.required' => 'Nama supplier / distributor wajib diisi.',
-            'nama_supplier.max'      => 'Nama supplier maksimal 50 karakter.',
-            'no_telepon.max'         => 'Nomor telepon maksimal 15 karakter.',
-            'alamat.max'             => 'Alamat maksimal 255 karakter.',
+            'nama_supplier.max' => 'Nama supplier maksimal 50 karakter.',
+            'no_telepon.max' => 'Nomor telepon maksimal 15 karakter.',
+            'alamat.max' => 'Alamat maksimal 255 karakter.',
         ]);
 
         $supplier->update($validated);

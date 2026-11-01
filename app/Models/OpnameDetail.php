@@ -8,7 +8,9 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class OpnameDetail extends Model
 {
     protected $table = 'ms_penyesuaian_detail';
+
     protected $primaryKey = 'id_detail';
+
     public $timestamps = false;
 
     protected $fillable = [

@@ -8,7 +8,9 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Jasa extends Model
 {
     protected $table = 'ms_jasa';
+
     protected $primaryKey = 'id_jasa';
+
     public $timestamps = false;
 
     protected $fillable = [

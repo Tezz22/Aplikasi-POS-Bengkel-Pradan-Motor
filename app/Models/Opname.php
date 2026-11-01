@@ -9,7 +9,9 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Opname extends Model
 {
     protected $table = 'ms_penyesuaian';
+
     protected $primaryKey = 'id_opname';
+
     public $timestamps = false;
 
     protected $fillable = [

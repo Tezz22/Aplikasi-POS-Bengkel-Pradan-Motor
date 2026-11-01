@@ -8,7 +8,9 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Pelanggan extends Model
 {
     protected $table = 'ms_pelanggan';
+
     protected $primaryKey = 'id_pelanggan';
+
     const UPDATED_AT = null;
 
     protected $fillable = [

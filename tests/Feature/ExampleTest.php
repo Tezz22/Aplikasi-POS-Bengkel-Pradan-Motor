@@ -39,12 +39,12 @@ class ExampleTest extends TestCase
     public function test_deactivated_user_cannot_login(): void
     {
         $cashier = User::factory()->create([
-            'role'   => 'kasir',
+            'role' => 'kasir',
             'status' => 'nonaktif',
         ]);
 
         $response = $this->post(route('login'), [
-            'email'    => $cashier->email,
+            'email' => $cashier->email,
             'password' => 'password',
         ]);
 
@@ -55,7 +55,7 @@ class ExampleTest extends TestCase
     public function test_deactivated_user_with_active_session_is_logged_out(): void
     {
         $cashier = User::factory()->create([
-            'role'   => 'kasir',
+            'role' => 'kasir',
             'status' => 'nonaktif',
         ]);
 

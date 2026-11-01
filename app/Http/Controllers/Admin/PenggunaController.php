@@ -18,21 +18,21 @@ class PenggunaController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'nama'     => ['required', 'string', 'max:50'],
-            'email'    => ['required', 'email', 'max:50', 'unique:ms_users,email'],
-            'role'     => ['required', 'in:admin,kasir'],
-            'status'   => ['nullable', 'in:aktif,nonaktif'],
+            'nama' => ['required', 'string', 'max:50'],
+            'email' => ['required', 'email', 'max:50', 'unique:ms_users,email'],
+            'role' => ['required', 'in:admin,kasir'],
+            'status' => ['nullable', 'in:aktif,nonaktif'],
             'password' => ['required', 'string', 'min:6', 'confirmed'],
         ], [
-            'nama.required'      => 'Nama lengkap wajib diisi.',
-            'nama.max'           => 'Nama lengkap maksimal 50 karakter.',
-            'email.required'     => 'Email wajib diisi.',
-            'email.max'          => 'Email maksimal 50 karakter.',
-            'email.unique'       => 'Email sudah digunakan oleh pengguna lain.',
-            'role.required'      => 'Role harus dipilih.',
-            'role.in'            => 'Role tidak valid.',
-            'password.required'  => 'Password wajib diisi.',
-            'password.min'       => 'Password minimal 6 karakter.',
+            'nama.required' => 'Nama lengkap wajib diisi.',
+            'nama.max' => 'Nama lengkap maksimal 50 karakter.',
+            'email.required' => 'Email wajib diisi.',
+            'email.max' => 'Email maksimal 50 karakter.',
+            'email.unique' => 'Email sudah digunakan oleh pengguna lain.',
+            'role.required' => 'Role harus dipilih.',
+            'role.in' => 'Role tidak valid.',
+            'password.required' => 'Password wajib diisi.',
+            'password.min' => 'Password minimal 6 karakter.',
             'password.confirmed' => 'Konfirmasi password tidak cocok.',
         ]);
 
@@ -46,20 +46,20 @@ class PenggunaController extends Controller
     public function update(Request $request, User $user)
     {
         $validated = $request->validate([
-            'nama'     => ['required', 'string', 'max:50'],
-            'email'    => ['required', 'email', 'max:50', 'unique:ms_users,email,' . $user->id_user . ',id_user'],
-            'role'     => ['required', 'in:admin,kasir'],
-            'status'   => ['nullable', 'in:aktif,nonaktif'],
+            'nama' => ['required', 'string', 'max:50'],
+            'email' => ['required', 'email', 'max:50', 'unique:ms_users,email,'.$user->id_user.',id_user'],
+            'role' => ['required', 'in:admin,kasir'],
+            'status' => ['nullable', 'in:aktif,nonaktif'],
             'password' => ['nullable', 'string', 'min:6', 'confirmed'],
         ], [
-            'nama.required'      => 'Nama lengkap wajib diisi.',
-            'nama.max'           => 'Nama lengkap maksimal 50 karakter.',
-            'email.required'     => 'Email wajib diisi.',
-            'email.max'          => 'Email maksimal 50 karakter.',
-            'email.unique'       => 'Email sudah digunakan oleh pengguna lain.',
-            'role.required'      => 'Role harus dipilih.',
-            'role.in'            => 'Role tidak valid.',
-            'password.min'       => 'Password minimal 6 karakter.',
+            'nama.required' => 'Nama lengkap wajib diisi.',
+            'nama.max' => 'Nama lengkap maksimal 50 karakter.',
+            'email.required' => 'Email wajib diisi.',
+            'email.max' => 'Email maksimal 50 karakter.',
+            'email.unique' => 'Email sudah digunakan oleh pengguna lain.',
+            'role.required' => 'Role harus dipilih.',
+            'role.in' => 'Role tidak valid.',
+            'password.min' => 'Password minimal 6 karakter.',
             'password.confirmed' => 'Konfirmasi password tidak cocok.',
         ]);
 
@@ -69,13 +69,13 @@ class PenggunaController extends Controller
         }
 
         $data = [
-            'nama'   => $validated['nama'],
-            'email'  => $validated['email'],
-            'role'   => $validated['role'],
+            'nama' => $validated['nama'],
+            'email' => $validated['email'],
+            'role' => $validated['role'],
             'status' => $validated['status'] ?? $user->status,
         ];
 
-        if (!empty($validated['password'])) {
+        if (! empty($validated['password'])) {
             $data['password'] = $validated['password'];
         }
 

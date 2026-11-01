@@ -20,24 +20,25 @@ class AuthController extends Controller
 
     public function login(Request $request)
     {
-        $throttleKey = Str::transliterate(Str::lower($request->input('email', '')) . '|' . $request->ip());
+        $throttleKey = Str::transliterate(Str::lower($request->input('email', '')).'|'.$request->ip());
 
         // Batasi maksimal 5 percobaan gagal dalam 60 detik (Brute Force Protection)
         if (RateLimiter::tooManyAttempts($throttleKey, 5)) {
             $seconds = RateLimiter::availableIn($throttleKey);
+
             return back()->withErrors([
                 'email' => "Terlalu banyak percobaan login gagal. Silakan coba kembali dalam {$seconds} detik.",
             ])->onlyInput('email');
         }
 
         $credentials = $request->validate([
-            'email'    => ['required', 'string', 'email'],
+            'email' => ['required', 'string', 'email'],
             'password' => ['required', 'string'],
         ], [
-            'email.required'    => 'Alamat email wajib diisi.',
-            'email.email'       => 'Format email tidak valid. Masukkan alamat email yang benar (contoh: admin@pradanmotor.com).',
+            'email.required' => 'Alamat email wajib diisi.',
+            'email.email' => 'Format email tidak valid. Masukkan alamat email yang benar (contoh: admin@pradanmotor.com).',
             'password.required' => 'Password wajib diisi.',
-            'password.string'   => 'Password harus berupa teks valid.',
+            'password.string' => 'Password harus berupa teks valid.',
         ]);
 
         if (Auth::attempt($credentials, $request->boolean('remember'))) {

@@ -5,9 +5,9 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Barang;
 use App\Models\Kategori;
-use App\Models\PenjualanDetail;
-use App\Models\Pembelian;
 use App\Models\OpnameDetail;
+use App\Models\Pembelian;
+use App\Models\PenjualanDetail;
 use Illuminate\Http\Request;
 
 class BarangController extends Controller
@@ -25,25 +25,25 @@ class BarangController extends Controller
         $validated = $request->validate([
             'id_kategori' => ['required', 'exists:ms_kategori,id_kategori'],
             'nama_barang' => ['required', 'string', 'max:30'],
-            'satuan'      => ['required', 'string', 'max:20'],
-            'harga_jual'  => ['required', 'numeric', 'min:0'],
-            'stok'        => ['required', 'integer', 'min:0'],
+            'satuan' => ['required', 'string', 'max:20'],
+            'harga_jual' => ['required', 'numeric', 'min:0'],
         ], [
             'id_kategori.required' => 'Kategori barang wajib dipilih.',
-            'id_kategori.exists'   => 'Kategori tidak valid.',
+            'id_kategori.exists' => 'Kategori tidak valid.',
             'nama_barang.required' => 'Nama barang wajib diisi.',
-            'nama_barang.max'      => 'Nama barang maksimal 30 karakter.',
-            'satuan.required'      => 'Satuan barang wajib diisi.',
-            'satuan.max'           => 'Satuan maksimal 20 karakter.',
-            'harga_jual.required'  => 'Harga jual wajib diisi.',
-            'harga_jual.numeric'   => 'Harga jual harus berupa angka.',
-            'stok.required'        => 'Stok awal wajib diisi.',
-            'stok.integer'         => 'Stok harus berupa bilangan bulat.',
+            'nama_barang.max' => 'Nama barang maksimal 30 karakter.',
+            'satuan.required' => 'Satuan barang wajib diisi.',
+            'satuan.max' => 'Satuan maksimal 20 karakter.',
+            'harga_jual.required' => 'Harga jual wajib diisi.',
+            'harga_jual.numeric' => 'Harga jual harus berupa angka.',
         ]);
+
+        // Aturan Bisnis: Stok awal barang baru selalu 0. Penambahan stok hanya melalui menu Barang Masuk.
+        $validated['stok'] = 0;
 
         Barang::create($validated);
 
-        return redirect()->route('admin.barang')->with('status', 'Barang baru berhasil ditambahkan!');
+        return redirect()->route('admin.barang')->with('status', 'Barang baru berhasil ditambahkan dengan stok awal 0!');
     }
 
     public function update(Request $request, Barang $barang)
@@ -51,25 +51,28 @@ class BarangController extends Controller
         $validated = $request->validate([
             'id_kategori' => ['required', 'exists:ms_kategori,id_kategori'],
             'nama_barang' => ['required', 'string', 'max:30'],
-            'satuan'      => ['required', 'string', 'max:20'],
-            'harga_jual'  => ['required', 'numeric', 'min:0'],
-            'stok'        => ['required', 'integer', 'min:0'],
+            'satuan' => ['required', 'string', 'max:20'],
+            'harga_jual' => ['required', 'numeric', 'min:0'],
         ], [
             'id_kategori.required' => 'Kategori barang wajib dipilih.',
-            'id_kategori.exists'   => 'Kategori tidak valid.',
+            'id_kategori.exists' => 'Kategori tidak valid.',
             'nama_barang.required' => 'Nama barang wajib diisi.',
-            'nama_barang.max'      => 'Nama barang maksimal 30 karakter.',
-            'satuan.required'      => 'Satuan barang wajib diisi.',
-            'satuan.max'           => 'Satuan maksimal 20 karakter.',
-            'harga_jual.required'  => 'Harga jual wajib diisi.',
-            'harga_jual.numeric'   => 'Harga jual harus berupa angka.',
-            'stok.required'        => 'Stok barang wajib diisi.',
-            'stok.integer'         => 'Stok harus berupa bilangan bulat.',
+            'nama_barang.max' => 'Nama barang maksimal 30 karakter.',
+            'satuan.required' => 'Satuan barang wajib diisi.',
+            'satuan.max' => 'Satuan maksimal 20 karakter.',
+            'harga_jual.required' => 'Harga jual wajib diisi.',
+            'harga_jual.numeric' => 'Harga jual harus berupa angka.',
         ]);
 
-        $barang->update($validated);
+        // Aturan Bisnis: Perubahan informasi master barang tidak boleh mengubah stok barang.
+        $barang->update([
+            'id_kategori' => $validated['id_kategori'],
+            'nama_barang' => $validated['nama_barang'],
+            'satuan' => $validated['satuan'],
+            'harga_jual' => $validated['harga_jual'],
+        ]);
 
-        return redirect()->route('admin.barang')->with('status', 'Data barang berhasil diperbarui!');
+        return redirect()->route('admin.barang')->with('status', 'Data barang berhasil diperbarui (stok tetap konsisten)!');
     }
 
     public function destroy(Barang $barang)
@@ -77,7 +80,7 @@ class BarangController extends Controller
         // Periksa apakah barang sudah pernah ada di riwayat penjualan, pembelian, atau stok opname
         $terpakaiPenjualan = PenjualanDetail::where('id_barang', $barang->id_barang)->exists();
         $terpakaiPembelian = Pembelian::where('id_barang', $barang->id_barang)->exists();
-        $terpakaiOpname    = OpnameDetail::where('id_barang', $barang->id_barang)->exists();
+        $terpakaiOpname = OpnameDetail::where('id_barang', $barang->id_barang)->exists();
 
         if ($terpakaiPenjualan || $terpakaiPembelian || $terpakaiOpname) {
             return redirect()->route('admin.barang')->with('error', "Barang '{$barang->nama_barang}' tidak dapat dihapus karena sudah memiliki riwayat transaksi/stok.");

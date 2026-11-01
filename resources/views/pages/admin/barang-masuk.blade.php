@@ -64,6 +64,12 @@
             <x-input label="No. Referensi" name="no_referensi" :value="'REF-' . date('Ym') . '-' . str_pad(($pembelians->count() + 1), 3, '0', STR_PAD_LEFT)" maxlength="25" :required="true" />
             <x-input label="Tanggal Masuk" name="tanggal" type="date" :value="date('Y-m-d')" :required="true" />
         </div>
+        @php
+            $barangOptions = [];
+            foreach ($barangs as $b) {
+                $barangOptions[$b->id_barang] = "{$b->nama_barang} (Stok Saat Ini: {$b->stok} {$b->satuan})";
+            }
+        @endphp
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <x-select 
                 label="Supplier" 
@@ -72,9 +78,9 @@
                 :required="true" 
             />
             <x-select 
-                label="Pilih Barang" 
+                label="Pilih Barang (Master Data)" 
                 name="id_barang" 
-                :options="$barangs->pluck('nama_barang', 'id_barang')->toArray()" 
+                :options="$barangOptions" 
                 :required="true" 
             />
         </div>

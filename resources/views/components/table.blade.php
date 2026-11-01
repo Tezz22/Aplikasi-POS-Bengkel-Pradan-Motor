@@ -8,6 +8,7 @@
     'paginate'          => true,
     'perPage'           => 10,
     'perPageOptions'    => [10, 25, 50, 100],
+    'sortable'          => true,
 ])
 
 @php
@@ -24,6 +25,7 @@
      class="data-table-container bg-white rounded-2xl border border-gray-100 shadow-xs overflow-hidden"
      data-table-id="{{ $tableId }}"
      data-paginate="{{ $paginate ? 'true' : 'false' }}"
+     data-sortable="{{ $sortable ? 'true' : 'false' }}"
      data-per-page="{{ $perPage }}">
     {{-- Optional Toolbar (Search on Left, Actions & Tab Penampilan Data on Right) --}}
     @if((isset($searchable) && $searchable) || (isset($actions) && $actions) || $paginate)
@@ -75,9 +77,54 @@
             @if(isset($headers) && is_array($headers))
                 <thead class="bg-gray-50/80 border-b border-gray-100 text-gray-400 font-semibold uppercase text-[10px] tracking-wider select-none">
                     <tr>
-                        @foreach($headers as $header)
-                            <th scope="col" class="py-3 px-4 first:pl-6 last:pr-6 {{ is_array($header) ? ($header['class'] ?? '') : '' }}">
-                                {{ is_array($header) ? ($header['text'] ?? '') : $header }}
+                        @foreach($headers as $index => $header)
+                            @php
+                                $headerText = is_array($header) ? ($header['text'] ?? '') : $header;
+                                $headerClass = is_array($header) ? ($header['class'] ?? '') : '';
+                                $canSortThis = is_array($header) ? ($header['sortable'] ?? true) : true;
+                                if (in_array(strtoupper(trim($headerText)), ['AKSI', 'ACTION', 'ACTIONS', ''])) {
+                                    $canSortThis = false;
+                                }
+                                $isColSortable = $sortable && $canSortThis;
+                                $alignClass = '';
+                                if (str_contains($headerClass, 'text-right')) {
+                                    $alignClass = 'justify-end';
+                                } elseif (str_contains($headerClass, 'text-center')) {
+                                    $alignClass = 'justify-center';
+                                }
+                            @endphp
+                            <th scope="col" 
+                                class="py-3 px-4 first:pl-6 last:pr-6 {{ $headerClass }} {{ $isColSortable ? 'data-table-th-sortable cursor-pointer group hover:bg-gray-100/70 hover:text-gray-700 transition-colors select-none' : '' }}"
+                                data-col-index="{{ $index }}"
+                                data-sortable="{{ $isColSortable ? 'true' : 'false' }}"
+                                @if($isColSortable)
+                                    role="button"
+                                    tabindex="0"
+                                    aria-sort="none"
+                                    title="Klik untuk mengurutkan (ASC / DESC)"
+                                @endif>
+                                @if($isColSortable)
+                                    <div class="inline-flex items-center gap-1.5 {{ $alignClass }}">
+                                        <span class="data-table-th-text transition-colors">{{ $headerText }}</span>
+                                        <span class="data-table-sort-indicator inline-flex items-center shrink-0 text-gray-300 transition-colors">
+                                            {{-- Idle / Unsorted Icon --}}
+                                            <svg class="sort-icon-idle w-3 h-3 group-hover:text-gray-500 transition-colors" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                <path d="m7 15 5 5 5-5"/>
+                                                <path d="m7 9 5-5 5 5"/>
+                                            </svg>
+                                            {{-- Ascending Icon (Up Arrow) --}}
+                                            <svg class="sort-icon-asc w-3 h-3 text-blue-600 hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                                <polyline points="18 15 12 9 6 15"/>
+                                            </svg>
+                                            {{-- Descending Icon (Down Arrow) --}}
+                                            <svg class="sort-icon-desc w-3 h-3 text-blue-600 hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                                <polyline points="6 9 12 15 18 9"/>
+                                            </svg>
+                                        </span>
+                                    </div>
+                                @else
+                                    {{ $headerText }}
+                                @endif
                             </th>
                         @endforeach
                     </tr>

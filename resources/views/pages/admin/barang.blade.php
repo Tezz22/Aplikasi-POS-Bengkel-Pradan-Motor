@@ -68,9 +68,10 @@
             />
             <x-input label="Satuan" name="satuan" placeholder="Botol, Pcs, Set (Maks. 20 Karakter)" maxlength="20" value="Pcs" :required="true" />
         </div>
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <x-input label="Harga Jual (Rp)" name="harga_jual" type="number" placeholder="0" :required="true" />
-            <x-input label="Stok Awal" name="stok" type="number" placeholder="0" :required="true" />
+        <x-input label="Harga Jual (Rp)" name="harga_jual" type="number" placeholder="0" :required="true" />
+        <div class="p-3 bg-blue-50/70 border border-blue-100 rounded-xl flex items-center gap-2 text-xs text-blue-700">
+            <x-icon name="info" :size="16" />
+            <span>Stok awal otomatis <strong>0</strong>. Penambahan stok dilakukan melalui menu <strong>Barang Masuk</strong>.</span>
         </div>
     </x-modal>
 
@@ -95,9 +96,10 @@
                 />
                 <x-input label="Satuan" name="satuan" :value="$barang->satuan" maxlength="20" :required="true" />
             </div>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <x-input label="Harga Jual (Rp)" name="harga_jual" type="number" :value="$barang->harga_jual" :required="true" />
-                <x-input label="Stok Saat Ini" name="stok" type="number" :value="$barang->stok" :required="true" />
+            <x-input label="Harga Jual (Rp)" name="harga_jual" type="number" :value="$barang->harga_jual" :required="true" />
+            <div class="p-3 bg-gray-50 border border-gray-200 rounded-xl flex items-center justify-between text-xs text-gray-700">
+                <span>Stok Terkini: <strong class="text-gray-900 font-bold">{{ $barang->stok }} {{ $barang->satuan }}</strong></span>
+                <span class="text-[11px] text-gray-400">Ubah stok via Barang Masuk / Stok Opname</span>
             </div>
         </x-modal>
 

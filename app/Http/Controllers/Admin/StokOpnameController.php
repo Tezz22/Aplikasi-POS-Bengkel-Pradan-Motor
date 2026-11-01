@@ -38,37 +38,37 @@ class StokOpnameController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'tanggal'     => ['required'],
-            'keterangan'  => ['nullable', 'string', 'max:255'],
-            'id_barang'   => ['required', 'exists:ms_barang,id_barang'],
-            'stok_fisik'  => ['required', 'integer', 'min:0'],
-            'alasan'      => ['required', 'string', 'max:500'],
+            'tanggal' => ['required'],
+            'keterangan' => ['nullable', 'string', 'max:255'],
+            'id_barang' => ['required', 'exists:ms_barang,id_barang'],
+            'stok_fisik' => ['required', 'integer', 'min:0'],
+            'alasan' => ['required', 'string', 'max:500'],
         ], [
-            'tanggal.required'    => 'Tanggal pemeriksaan wajib diisi.',
-            'id_barang.required'  => 'Barang wajib dipilih untuk disesuaikan.',
-            'id_barang.exists'    => 'Barang yang dipilih tidak valid.',
+            'tanggal.required' => 'Tanggal pemeriksaan wajib diisi.',
+            'id_barang.required' => 'Barang wajib dipilih untuk disesuaikan.',
+            'id_barang.exists' => 'Barang yang dipilih tidak valid.',
             'stok_fisik.required' => 'Jumlah stok fisik asli wajib diisi.',
-            'stok_fisik.integer'  => 'Stok fisik harus berupa angka bilangan bulat.',
-            'stok_fisik.min'      => 'Stok fisik tidak boleh bernilai negatif.',
-            'alasan.required'     => 'Alasan atau penjelasan selisih wajib diisi.',
+            'stok_fisik.integer' => 'Stok fisik harus berupa angka bilangan bulat.',
+            'stok_fisik.min' => 'Stok fisik tidak boleh bernilai negatif.',
+            'alasan.required' => 'Alasan atau penjelasan selisih wajib diisi.',
         ]);
 
         DB::transaction(function () use ($validated) {
-            $barang = Barang::findOrFail($validated['id_barang']);
+            $barang = Barang::where('id_barang', $validated['id_barang'])->lockForUpdate()->firstOrFail();
             $stokSistem = $barang->stok;
 
             $opname = Opname::create([
-                'id_user'    => auth()->user()->id_user ?? auth()->id(),
-                'tanggal'    => $validated['tanggal'],
+                'id_user' => auth()->user()->id_user ?? auth()->id(),
+                'tanggal' => $validated['tanggal'],
                 'keterangan' => $validated['keterangan'] ?? 'Penyesuaian stok fisik barang',
             ]);
 
             OpnameDetail::create([
-                'id_opname'   => $opname->id_opname,
-                'id_barang'   => $barang->id_barang,
+                'id_opname' => $opname->id_opname,
+                'id_barang' => $barang->id_barang,
                 'stok_sistem' => $stokSistem,
-                'stok_fisik'  => $validated['stok_fisik'],
-                'alasan'      => $validated['alasan'],
+                'stok_fisik' => $validated['stok_fisik'],
+                'alasan' => $validated['alasan'],
             ]);
 
             // Sinkronkan stok sistem dengan stok fisik asli

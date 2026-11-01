@@ -21,8 +21,8 @@ class KategoriController extends Controller
             'nama_kategori' => ['required', 'string', 'max:25', 'unique:ms_kategori,nama_kategori'],
         ], [
             'nama_kategori.required' => 'Nama kategori wajib diisi.',
-            'nama_kategori.max'      => 'Nama kategori maksimal 25 karakter.',
-            'nama_kategori.unique'   => 'Nama kategori sudah ada.',
+            'nama_kategori.max' => 'Nama kategori maksimal 25 karakter.',
+            'nama_kategori.unique' => 'Nama kategori sudah ada.',
         ]);
 
         Kategori::create($validated);
@@ -33,11 +33,11 @@ class KategoriController extends Controller
     public function update(Request $request, Kategori $kategori)
     {
         $validated = $request->validate([
-            'nama_kategori' => ['required', 'string', 'max:25', 'unique:ms_kategori,nama_kategori,' . $kategori->id_kategori . ',id_kategori'],
+            'nama_kategori' => ['required', 'string', 'max:25', 'unique:ms_kategori,nama_kategori,'.$kategori->id_kategori.',id_kategori'],
         ], [
             'nama_kategori.required' => 'Nama kategori wajib diisi.',
-            'nama_kategori.max'      => 'Nama kategori maksimal 25 karakter.',
-            'nama_kategori.unique'   => 'Nama kategori sudah digunakan.',
+            'nama_kategori.max' => 'Nama kategori maksimal 25 karakter.',
+            'nama_kategori.unique' => 'Nama kategori sudah digunakan.',
         ]);
 
         $kategori->update($validated);

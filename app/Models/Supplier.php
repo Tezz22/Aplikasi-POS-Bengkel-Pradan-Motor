@@ -8,7 +8,9 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Supplier extends Model
 {
     protected $table = 'ms_suppliier';
+
     protected $primaryKey = 'id_supplier';
+
     public $timestamps = false;
 
     protected $fillable = [
