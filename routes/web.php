@@ -50,6 +50,7 @@ use App\Http\Controllers\Admin\ProfilController as AdminProfilController;
 use App\Http\Controllers\Admin\RiwayatController as AdminRiwayatController;
 use App\Http\Controllers\Admin\StokOpnameController as AdminStokOpnameController;
 use App\Http\Controllers\Admin\SupplierController as AdminSupplierController;
+use App\Http\Controllers\Kasir\PelangganController as KasirPelangganController;
 use App\Http\Controllers\KasirController;
 
 Route::get('/registrasi', fn () => view('pages.register'))->name('register');
@@ -59,7 +60,12 @@ Route::prefix('kasir')->name('kasir.')->middleware('auth')->group(function () {
     Route::get('/dashboard', [KasirController::class, 'dashboard'])->name('dashboard');
     Route::get('/transaksi', [KasirController::class, 'transaksi'])->name('transaksi');
     Route::post('/transaksi', [KasirController::class, 'storeTransaksi'])->name('transaksi.store');
-    Route::get('/pelanggan', [KasirController::class, 'pelanggan'])->name('pelanggan');
+
+    // Pelanggan CRUD
+    Route::get('/pelanggan', [KasirPelangganController::class, 'index'])->name('pelanggan');
+    Route::post('/pelanggan', [KasirPelangganController::class, 'store'])->name('pelanggan.store');
+    Route::put('/pelanggan/{pelanggan}', [KasirPelangganController::class, 'update'])->name('pelanggan.update');
+    Route::delete('/pelanggan/{pelanggan}', [KasirPelangganController::class, 'destroy'])->name('pelanggan.destroy');
     Route::get('/stok', [KasirController::class, 'stok'])->name('stok');
     Route::get('/riwayat', [KasirController::class, 'riwayat'])->name('riwayat');
     Route::get('/laporan', [KasirController::class, 'laporan'])->name('laporan');

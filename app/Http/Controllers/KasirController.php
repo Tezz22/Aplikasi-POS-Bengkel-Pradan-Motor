@@ -186,7 +186,7 @@ class KasirController extends Controller
 
     public function pelanggan()
     {
-        $pelanggans = Pelanggan::orderBy('id_pelanggan', 'desc')->get();
+        $pelanggans = Pelanggan::withCount('penjualan')->orderBy('id_pelanggan', 'desc')->get();
 
         return view('pages.kasir.pelanggan', compact('pelanggans'));
     }

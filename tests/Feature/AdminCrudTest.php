@@ -655,4 +655,59 @@ class AdminCrudTest extends TestCase
         $response4 = $this->actingAs($kasir)->get(route('admin.pengguna'));
         $response4->assertForbidden();
     }
+
+    public function test_cashier_can_crud_pelanggan(): void
+    {
+        $kasir = User::factory()->create([
+            'role' => 'kasir',
+            'status' => 'aktif',
+        ]);
+
+        // 1. View pelanggan list
+        $indexResponse = $this->actingAs($kasir)->get(route('kasir.pelanggan'));
+        $indexResponse->assertOk();
+        $indexResponse->assertSee('Data Pelanggan');
+
+        // 2. Create pelanggan
+        $createResponse = $this->actingAs($kasir)->post(route('kasir.pelanggan.store'), [
+            'nama' => 'Ahmad Kasir Customer',
+            'plat_nomor' => 'D 1234 KSR',
+            'no_telepon' => '081234567890',
+        ]);
+        $createResponse->assertRedirect(route('kasir.pelanggan'));
+        $this->assertDatabaseHas('ms_pelanggan', [
+            'nama' => 'Ahmad Kasir Customer',
+            'plat_nomor' => 'D 1234 KSR',
+        ]);
+
+        $pelanggan = Pelanggan::where('nama', 'Ahmad Kasir Customer')->first();
+        $this->assertNotNull($pelanggan);
+
+        // 3. Update pelanggan
+        $updateResponse = $this->actingAs($kasir)->put(route('kasir.pelanggan.update', $pelanggan), [
+            'nama' => 'Ahmad Kasir Customer Updated',
+            'plat_nomor' => 'D 5678 KSR',
+            'no_telepon' => '081987654321',
+        ]);
+        $updateResponse->assertRedirect(route('kasir.pelanggan'));
+        $this->assertDatabaseHas('ms_pelanggan', [
+            'id_pelanggan' => $pelanggan->id_pelanggan,
+            'nama' => 'Ahmad Kasir Customer Updated',
+            'plat_nomor' => 'D 5678 KSR',
+        ]);
+
+        // 4. Delete pelanggan
+        $deleteResponse = $this->actingAs($kasir)->delete(route('kasir.pelanggan.destroy', $pelanggan));
+        $deleteResponse->assertRedirect(route('kasir.pelanggan'));
+        $this->assertDatabaseMissing('ms_pelanggan', [
+            'id_pelanggan' => $pelanggan->id_pelanggan,
+        ]);
+
+        // 5. Validation check
+        $invalidResponse = $this->actingAs($kasir)->post(route('kasir.pelanggan.store'), [
+            'nama' => '',
+            'no_telepon' => '123',
+        ]);
+        $invalidResponse->assertSessionHasErrors(['nama', 'no_telepon']);
+    }
 }
