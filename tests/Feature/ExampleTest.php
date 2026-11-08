@@ -235,6 +235,7 @@ class ExampleTest extends TestCase
             ->assertSee('Cetak Rekap Kasir')
             ->assertSee('Cetak PDF')
             ->assertSee('Excel (CSV)')
+            ->assertSee('Simpan sebagai PDF')
             ->assertSee('exportCashierReport', false);
     }
 }
