@@ -39,12 +39,12 @@ class ExampleTest extends TestCase
     public function test_deactivated_user_cannot_login(): void
     {
         $cashier = User::factory()->create([
-            'role'   => 'kasir',
+            'role' => 'kasir',
             'status' => 'nonaktif',
         ]);
 
         $response = $this->post(route('login'), [
-            'email'    => $cashier->email,
+            'email' => $cashier->email,
             'password' => 'password',
         ]);
 
@@ -55,7 +55,7 @@ class ExampleTest extends TestCase
     public function test_deactivated_user_with_active_session_is_logged_out(): void
     {
         $cashier = User::factory()->create([
-            'role'   => 'kasir',
+            'role' => 'kasir',
             'status' => 'nonaktif',
         ]);
 
@@ -221,5 +221,20 @@ class ExampleTest extends TestCase
             $response = $this->actingAs($cashier)->get(route($route));
             $response->assertOk();
         }
+    }
+
+    public function test_cashier_report_offers_pdf_and_excel_export_options(): void
+    {
+        $cashier = User::factory()->create(['role' => 'kasir']);
+
+        $response = $this->actingAs($cashier)->get(route('kasir.laporan'));
+
+        $response->assertOk()
+            ->assertSee('modal-cetak-rekap-kasir', false)
+            ->assertSee('data-paginate="true"', false)
+            ->assertSee('Cetak Rekap Kasir')
+            ->assertSee('Cetak PDF')
+            ->assertSee('Excel (CSV)')
+            ->assertSee('exportCashierReport', false);
     }
 }
