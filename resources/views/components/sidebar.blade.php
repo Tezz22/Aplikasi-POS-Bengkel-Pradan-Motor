@@ -183,12 +183,12 @@
             </a>
 
             <a href="{{ route('kasir.laporan') }}" 
-               title="Laporan Kasir" 
+               title="Laporan" 
                class="sidebar-item flex items-center gap-3.5 px-3.5 py-3 rounded-xl text-sm font-semibold transition-all {{ $currentRoute === 'kasir.laporan' ? 'bg-[#293652] text-white shadow-xs' : 'text-slate-300 hover:text-white hover:bg-white/5' }}">
                 <span class="{{ $currentRoute === 'kasir.laporan' ? 'text-blue-400' : 'text-slate-400' }}">
                     @include('components.icon', ['name' => 'laporan', 'size' => 20])
                 </span>
-                <span class="sidebar-text truncate">Laporan Kasir</span>
+                <span class="sidebar-text truncate">Laporan</span>
             </a>
         @endif
     </nav>

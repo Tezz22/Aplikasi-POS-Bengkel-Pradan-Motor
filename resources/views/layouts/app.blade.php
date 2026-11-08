@@ -91,6 +91,7 @@
             .page-header-container,
             [id$="-pagination-footer"],
             .data-table-container > div:first-child,
+            .action-col,
             [role="dialog"] {
                 display: none !important;
             }

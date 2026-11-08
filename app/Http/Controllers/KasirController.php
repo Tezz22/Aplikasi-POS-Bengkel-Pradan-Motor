@@ -198,26 +198,72 @@ class KasirController extends Controller
         return view('pages.kasir.stok', compact('barangs'));
     }
 
-    public function riwayat()
+    public function riwayat(Request $request)
     {
-        $transaksis = Penjualan::with(['pelanggan', 'user', 'details'])
-            ->orderBy('tanggal', 'desc')
-            ->get();
+        $query = Penjualan::with(['pelanggan', 'user', 'details.barang', 'details.jasa'])
+            ->orderBy('tanggal', 'desc');
+
+        if ($request->filled('tanggal_mulai') && $request->filled('tanggal_akhir')) {
+            $query->whereBetween('tanggal', [
+                $request->tanggal_mulai . ' 00:00:00',
+                $request->tanggal_akhir . ' 23:59:59',
+            ]);
+        }
+
+        $transaksis = $query->get();
 
         return view('pages.kasir.riwayat', compact('transaksis'));
     }
 
-    public function laporan()
+    public function laporan(Request $request)
     {
+        $tipe = $request->get('tipe', 'transaksi'); // 'transaksi' (detail) atau 'rekap' (harian)
+
+        // Tentukan tanggal default:
+        // Jika belum ada input tanggal dan ada data transaksi sebelumnya, gunakan awal bulan transaksi terakhir
+        $defaultMulai = Carbon::now()->startOfMonth()->format('Y-m-d');
+        if (Penjualan::whereDate('tanggal', '>=', $defaultMulai)->count() === 0 && Penjualan::exists()) {
+            $latestTrxDate = Penjualan::max('tanggal');
+            if ($latestTrxDate) {
+                $defaultMulai = Carbon::parse($latestTrxDate)->startOfMonth()->format('Y-m-d');
+            }
+        }
+
+        $tanggalMulai = $request->get('tanggal_mulai', $defaultMulai);
+        $tanggalAkhir = $request->get('tanggal_akhir', Carbon::now()->format('Y-m-d'));
+
+        $startDateTime = $tanggalMulai . ' 00:00:00';
+        $endDateTime = $tanggalAkhir . ' 23:59:59';
+
+        // Ambil transaksi penjualan sesuai rentang tanggal
+        $transaksis = Penjualan::with(['pelanggan', 'user', 'details.barang', 'details.jasa'])
+            ->whereBetween('tanggal', [$startDateTime, $endDateTime])
+            ->orderBy('tanggal', 'desc')
+            ->get();
+
+        // Rekapitulasi per tanggal
         $rekapHarian = Penjualan::selectRaw('DATE(tanggal) as tgl, COUNT(*) as jml_transaksi, SUM(total) as total_nominal')
+            ->whereBetween('tanggal', [$startDateTime, $endDateTime])
             ->groupBy('tgl')
             ->orderBy('tgl', 'desc')
             ->get();
 
-        $totalSetoran = Penjualan::sum('total');
-        $totalTransaksi = Penjualan::count();
+        $totalNominal = (int) $transaksis->sum('total');
+        $totalTransaksi = $transaksis->count();
+        $totalSetoran = $totalNominal;
+        $rataRata = $totalTransaksi > 0 ? (int) round($transaksis->avg('total')) : 0;
 
-        return view('pages.kasir.laporan', compact('rekapHarian', 'totalSetoran', 'totalTransaksi'));
+        return view('pages.kasir.laporan', compact(
+            'tipe',
+            'tanggalMulai',
+            'tanggalAkhir',
+            'transaksis',
+            'rekapHarian',
+            'totalNominal',
+            'totalSetoran',
+            'totalTransaksi',
+            'rataRata'
+        ));
     }
 
     public function profil()

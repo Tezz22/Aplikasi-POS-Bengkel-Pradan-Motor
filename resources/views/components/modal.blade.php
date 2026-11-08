@@ -68,18 +68,24 @@
         </div>
 
         <!-- Footer -->
-        <div class="px-6 py-3.5 bg-gray-50/70 border-t border-gray-100 flex items-center justify-end gap-2.5">
-            @if(isset($footer) && $footer)
-                {!! $footer !!}
-            @else
-                <x-button variant="secondary" size="sm" :onclick="'closeModal(\'' . $id . '\')'">
-                    Batal
-                </x-button>
-                <x-button :variant="$submitVariant ?? 'primary'" size="sm" :type="isset($formAction) && $formAction ? 'submit' : 'button'">
-                    {{ $submitText ?? 'Simpan' }}
-                </x-button>
-            @endif
-        </div>
+        @if($footer !== false)
+            <div class="px-6 py-3.5 bg-gray-50/70 border-t border-gray-100 flex items-center justify-end gap-2.5">
+                @if(isset($footer) && $footer)
+                    {!! $footer !!}
+                @elseif(isset($formAction) && $formAction)
+                    <x-button variant="secondary" size="sm" :onclick="'closeModal(\'' . $id . '\')'">
+                        Batal
+                    </x-button>
+                    <x-button :variant="$submitVariant ?? 'primary'" size="sm" type="submit">
+                        {{ $submitText ?? 'Simpan' }}
+                    </x-button>
+                @else
+                    <x-button variant="secondary" size="sm" :onclick="'closeModal(\'' . $id . '\')'">
+                        Tutup
+                    </x-button>
+                @endif
+            </div>
+        @endif
 
         @if(isset($formAction) && $formAction)
             </form>
