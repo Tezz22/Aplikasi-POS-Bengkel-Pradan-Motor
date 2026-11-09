@@ -36,11 +36,7 @@
                 <td class="py-3.5 px-4 font-bold text-emerald-600">Rp {{ number_format($pembelian->subtotal, 0, ',', '.') }}</td>
                 <td class="py-3.5 px-4 text-gray-500">{{ $pembelian->user->nama ?? $pembelian->user->name ?? 'Admin' }}</td>
                 <td class="py-3.5 px-4 last:pr-6">
-                    <form action="{{ route('admin.barang-masuk.destroy', $pembelian->id_tr_pembelian) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin membatalkan dan menghapus catatan penerimaan barang ini? Stok barang akan dikurangi kembali.')" class="inline">
-                        @csrf
-                        @method('DELETE')
-                        <x-button-action type="delete" buttonType="submit" title="Batalkan Penerimaan" />
-                    </form>
+                    <x-button-action type="delete" onclick="openModal('modal-hapus-barang-masuk-{{ $pembelian->id_tr_pembelian }}')" title="Batalkan Penerimaan" />
                 </td>
             </tr>
         @empty
@@ -49,6 +45,32 @@
             </tr>
         @endforelse
     </x-table>
+
+    {{-- Modal Konfirmasi Batalkan Barang Masuk --}}
+    @foreach($pembelians as $pembelian)
+        <x-modal
+            id="modal-hapus-barang-masuk-{{ $pembelian->id_tr_pembelian }}"
+            title="Konfirmasi Batalkan Penerimaan"
+            subtitle="Tindakan ini tidak dapat dibatalkan"
+            :formAction="route('admin.barang-masuk.destroy', $pembelian->id_tr_pembelian)"
+            formMethod="DELETE"
+            submitText="Ya, Batalkan Penerimaan"
+            submitVariant="danger"
+            size="sm"
+        >
+            <div class="text-center py-2">
+                <div class="w-12 h-12 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center mx-auto mb-3">
+                    <x-icon name="alert" :size="24" />
+                </div>
+                <h4 class="text-sm font-semibold text-gray-900 mb-1">Batalkan Penerimaan Ini?</h4>
+                <p class="text-xs text-gray-600 leading-relaxed">
+                    Catatan penerimaan <span class="font-bold text-gray-900">"{{ $pembelian->no_referensi }}"</span>
+                    untuk barang <span class="font-bold text-gray-900">"{{ $pembelian->barang->nama_barang ?? '-' }}"</span>
+                    akan dihapus dan stok akan dikurangi kembali.
+                </p>
+            </div>
+        </x-modal>
+    @endforeach
 
     {{-- Modal Catat Barang Masuk --}}
     <x-modal 
