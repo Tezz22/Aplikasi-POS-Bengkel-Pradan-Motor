@@ -79,6 +79,7 @@
         </div>
     </div>
 
+
     {{-- Filter Panel: Tipe Tampilan & Tanggal Periode (Hanya di Web) --}}
     <div class="bg-white p-4 sm:p-5 rounded-2xl border border-gray-100 shadow-xs mb-4 print:hidden">
         <form method="GET" action="{{ route('kasir.laporan') }}" id="form-filter-laporan">
@@ -373,4 +374,47 @@
             document.body.removeChild(link);
         }
     </script>
+
+    <div class="flex items-center gap-3 mt-5">
+        <x-button
+            variant="primary"
+            size="sm"
+            icon="printer"
+            text="Cetak Rekap Kasir"
+            onclick="openModal('modal-cetak-rekap-kasir')"
+        />
+    </div>
+
+    <x-modal
+        id="modal-cetak-rekap-kasir"
+        title="Cetak Rekap Kasir"
+        subtitle="Pilih format rekap yang ingin dicetak atau diunduh"
+    >
+        <p>File Excel diunduh sebagai CSV. Untuk PDF, pilih "Simpan sebagai PDF" pada dialog cetak.</p>
+
+        <x-slot:footer>
+            <div class="flex w-full items-center justify-between">
+                <x-button
+                    variant="secondary"
+                    size="sm"
+                    text="Batal"
+                    onclick="closeModal('modal-cetak-rekap-kasir')"
+                />
+                <div class="flex items-center gap-2.5">
+                    <x-button
+                        variant="outline-success"
+                        size="sm"
+                        text="Excel (CSV)"
+                        onclick="exportCashierReport('excel')"
+                    />
+                    <x-button
+                        variant="outline-danger"
+                        size="sm"
+                        text="Cetak PDF"
+                        onclick="exportCashierReport('pdf')"
+                    />
+                </div>
+            </div>
+        </x-slot:footer>
+    </x-modal>
 @endsection

@@ -222,4 +222,20 @@ class ExampleTest extends TestCase
             $response->assertOk();
         }
     }
+
+    public function test_cashier_report_offers_pdf_and_excel_export_options(): void
+    {
+        $cashier = User::factory()->create(['role' => 'kasir']);
+
+        $response = $this->actingAs($cashier)->get(route('kasir.laporan'));
+
+        $response->assertOk()
+            ->assertSee('modal-cetak-rekap-kasir', false)
+            ->assertSee('data-paginate="true"', false)
+            ->assertSee('Cetak Rekap Kasir')
+            ->assertSee('Cetak PDF')
+            ->assertSee('Excel (CSV)')
+            ->assertSee('Simpan sebagai PDF')
+            ->assertSee('exportCashierReport', false);
+    }
 }
