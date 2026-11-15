@@ -21,14 +21,25 @@ class OpnameDetail extends Model
         'alasan',
     ];
 
-    public function getIdAttribute()
+    public function getIdAttribute(): int
     {
-        return $this->id_detail;
+        return (int) $this->id_detail;
     }
 
-    public function getSelisihAttribute()
+    public function getSelisihAttribute(): int
     {
-        return $this->stok_fisik - $this->stok_sistem;
+        return (int) ($this->stok_fisik - $this->stok_sistem);
+    }
+
+    public function getStatusSelisihAttribute(): string
+    {
+        $selisih = $this->selisih;
+        if ($selisih > 0) {
+            return 'Lebih +' . $selisih;
+        } elseif ($selisih < 0) {
+            return 'Kurang ' . $selisih;
+        }
+        return 'Sesuai';
     }
 
     public function opname(): BelongsTo

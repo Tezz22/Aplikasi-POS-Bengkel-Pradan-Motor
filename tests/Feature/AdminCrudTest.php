@@ -5,6 +5,8 @@ namespace Tests\Feature;
 use App\Models\Barang;
 use App\Models\Jasa;
 use App\Models\Kategori;
+use App\Models\Opname;
+use App\Models\OpnameDetail;
 use App\Models\Pelanggan;
 use App\Models\Pembelian;
 use App\Models\Penjualan;
@@ -378,6 +380,292 @@ class AdminCrudTest extends TestCase
             'stok_sistem' => 10,
             'stok_fisik' => 8,
         ]);
+    }
+
+    public function test_admin_stok_opname_can_be_updated_and_reconciles_stock(): void
+    {
+        $kategori = Kategori::create(['nama_kategori' => 'Kampas Rem']);
+        $barang = Barang::create([
+            'id_kategori' => $kategori->id_kategori,
+            'nama_barang' => 'Kampas Rem Depan Beat',
+            'satuan' => 'Set',
+            'harga_jual' => 45000,
+            'stok' => 10,
+        ]);
+
+        // 1. Buat stok opname awal: fisik = 8 (stok berkurang dari 10 menjadi 8)
+        $this->actingAs($this->admin)->post(route('admin.stok-opname.store'), [
+            'tanggal' => now()->toDateString(),
+            'id_barang' => $barang->id_barang,
+            'stok_fisik' => 8,
+            'alasan' => '2 set rusak kemasan',
+            'keterangan' => 'Audit awal',
+        ]);
+
+        $opname = Opname::latest('id_opname')->first();
+        $this->assertEquals(8, $barang->fresh()->stok);
+
+        // 2. Update stok opname: hitung ulang ternyata fisik ada 9 (selisih dari fisik lama: 9 - 8 = +1)
+        $detail = $opname->details()->first();
+        $response = $this->actingAs($this->admin)->put(route('admin.stok-opname.update', $opname), [
+            'tanggal' => now()->toDateString(),
+            'keterangan' => 'Audit revisi hitung ulang',
+            'details' => [
+                [
+                    'id_detail' => $detail->id_detail,
+                    'stok_fisik' => 9,
+                    'alasan' => '1 set ditemukan terselip di rak bawah',
+                ],
+            ],
+        ]);
+        $response->assertRedirect(route('admin.stok-opname'));
+        $response->assertSessionHas('status');
+
+        // Stok barang di sistem harus bertambah 1 menjadi 9
+        $this->assertEquals(9, $barang->fresh()->stok);
+        $this->assertDatabaseHas('ms_penyesuaian_detail', [
+            'id_detail' => $detail->id_detail,
+            'stok_fisik' => 9,
+            'alasan' => '1 set ditemukan terselip di rak bawah',
+        ]);
+        $this->assertDatabaseHas('ms_penyesuaian', [
+            'id_opname' => $opname->id_opname,
+            'keterangan' => 'Audit revisi hitung ulang',
+        ]);
+    }
+
+    public function test_admin_stok_opname_update_rejected_when_stock_becomes_negative(): void
+    {
+        $kategori = Kategori::create(['nama_kategori' => 'Pelumas']);
+        $barang = Barang::create([
+            'id_kategori' => $kategori->id_kategori,
+            'nama_barang' => 'Oli Mesran Super 1L',
+            'satuan' => 'Botol',
+            'harga_jual' => 35000,
+            'stok' => 5,
+        ]);
+
+        // Buat opname: fisik ditemukan 10 (+5 botol)
+        $this->actingAs($this->admin)->post(route('admin.stok-opname.store'), [
+            'tanggal' => now()->toDateString(),
+            'id_barang' => $barang->id_barang,
+            'stok_fisik' => 10,
+            'alasan' => 'Tambahan stok gudang belakang',
+        ]);
+        $this->assertEquals(10, $barang->fresh()->stok);
+
+        $opname = Opname::latest('id_opname')->first();
+        $detail = $opname->details()->first();
+
+        // Simulasikan 8 botol terjual, sisa stok tinggal 2 botol
+        $barang->update(['stok' => 2]);
+
+        // Coba edit opname menjadi stok fisik 1 (delta: 1 - 10 = -9).
+        // Karena stok saat ini hanya 2, 2 + (-9) = -7 (negatif). Harus ditolak!
+        $response = $this->actingAs($this->admin)->put(route('admin.stok-opname.update', $opname), [
+            'tanggal' => now()->toDateString(),
+            'details' => [
+                [
+                    'id_detail' => $detail->id_detail,
+                    'stok_fisik' => 1,
+                    'alasan' => 'Salah hitung sebelumnya',
+                ],
+            ],
+        ]);
+        $response->assertSessionHasErrors('stok_fisik');
+
+        // Stok tidak berubah menjadi negatif, tetap 2
+        $this->assertEquals(2, $barang->fresh()->stok);
+    }
+
+    public function test_admin_stok_opname_can_be_deleted_and_reverts_stock(): void
+    {
+        $kategori = Kategori::create(['nama_kategori' => 'Busi']);
+        $barang = Barang::create([
+            'id_kategori' => $kategori->id_kategori,
+            'nama_barang' => 'Busi NGK CPR9EA',
+            'satuan' => 'Pcs',
+            'harga_jual' => 25000,
+            'stok' => 10,
+        ]);
+
+        // Catat stok opname: fisik 7 (penyesuaian: -3 pcs)
+        $this->actingAs($this->admin)->post(route('admin.stok-opname.store'), [
+            'tanggal' => now()->toDateString(),
+            'id_barang' => $barang->id_barang,
+            'stok_fisik' => 7,
+            'alasan' => '3 busi pecah keramik',
+        ]);
+        $this->assertEquals(7, $barang->fresh()->stok);
+
+        $opname = Opname::latest('id_opname')->first();
+
+        // Hapus / batalkan sesi opname
+        $response = $this->actingAs($this->admin)->delete(route('admin.stok-opname.destroy', $opname));
+        $response->assertRedirect(route('admin.stok-opname'));
+        $response->assertSessionHas('status');
+
+        // Stok barang harus dikembalikan ke stok semula: 7 - (-3) = 10
+        $this->assertEquals(10, $barang->fresh()->stok);
+        $this->assertDatabaseMissing('ms_penyesuaian', ['id_opname' => $opname->id_opname]);
+        $this->assertDatabaseMissing('ms_penyesuaian_detail', ['id_opname' => $opname->id_opname]);
+    }
+
+    public function test_admin_stok_opname_deletion_rejected_when_stock_insufficient(): void
+    {
+        $kategori = Kategori::create(['nama_kategori' => 'Spion']);
+        $barang = Barang::create([
+            'id_kategori' => $kategori->id_kategori,
+            'nama_barang' => 'Spion Standar Vario',
+            'satuan' => 'Set',
+            'harga_jual' => 60000,
+            'stok' => 2,
+        ]);
+
+        // Opname: fisik ditemukan 12 (+10 set)
+        $this->actingAs($this->admin)->post(route('admin.stok-opname.store'), [
+            'tanggal' => now()->toDateString(),
+            'id_barang' => $barang->id_barang,
+            'stok_fisik' => 12,
+            'alasan' => 'Ditemukan stok cadangan di kardus',
+        ]);
+        $this->assertEquals(12, $barang->fresh()->stok);
+
+        $opname = Opname::latest('id_opname')->first();
+
+        // Simulasikan 10 set terjual, sisa stok tinggal 2
+        $barang->refresh()->update(['stok' => 2]);
+
+        // Batalkan sesi opname (akan mengurangi 10 set, padahal stok sisa hanya 2). Harus ditolak!
+        $response = $this->actingAs($this->admin)->delete(route('admin.stok-opname.destroy', $opname));
+        $response->assertRedirect(route('admin.stok-opname'));
+        $response->assertSessionHas('error');
+
+        // Sesi opname tidak terhapus dan stok tetap 2
+        $this->assertDatabaseHas('ms_penyesuaian', ['id_opname' => $opname->id_opname]);
+        $this->assertEquals(2, $barang->fresh()->stok);
+    }
+
+    public function test_admin_stok_opname_batch_items_synchronizes_all_stock(): void
+    {
+        $kategori = Kategori::create(['nama_kategori' => 'Oli & Filter']);
+        $barang1 = Barang::create([
+            'id_kategori' => $kategori->id_kategori,
+            'nama_barang' => 'Oli Gardan AHM',
+            'satuan' => 'Tube',
+            'harga_jual' => 18000,
+            'stok' => 15,
+        ]);
+        $barang2 = Barang::create([
+            'id_kategori' => $kategori->id_kategori,
+            'nama_barang' => 'Filter Oli Kaze',
+            'satuan' => 'Pcs',
+            'harga_jual' => 25000,
+            'stok' => 8,
+        ]);
+
+        $response = $this->actingAs($this->admin)->post(route('admin.stok-opname.store'), [
+            'tanggal' => now()->toDateString(),
+            'keterangan' => 'Audit batch bulanan',
+            'items' => [
+                [
+                    'id_barang' => $barang1->id_barang,
+                    'stok_fisik' => 12,
+                    'alasan' => '3 botol rembes bocor',
+                ],
+                [
+                    'id_barang' => $barang2->id_barang,
+                    'stok_fisik' => 10,
+                    'alasan' => '2 pcs tambahan belum terinput',
+                ],
+            ],
+        ]);
+        $response->assertRedirect(route('admin.stok-opname'));
+
+        // Kedua barang tersinkronkan stok fisiknya
+        $this->assertEquals(12, $barang1->fresh()->stok);
+        $this->assertEquals(10, $barang2->fresh()->stok);
+
+        $opname = Opname::latest('id_opname')->first();
+        $this->assertCount(2, $opname->details);
+    }
+
+    public function test_admin_stok_opname_validation(): void
+    {
+        // 1. Validasi required
+        $response = $this->actingAs($this->admin)->post(route('admin.stok-opname.store'), [
+            'tanggal' => '',
+            'id_barang' => '',
+            'stok_fisik' => '',
+            'alasan' => '',
+        ]);
+        $response->assertSessionHasErrors(['tanggal', 'id_barang', 'stok_fisik', 'alasan']);
+
+        // 2. Validasi barang tidak ada & stok fisik negatif
+        $responseInvalid = $this->actingAs($this->admin)->post(route('admin.stok-opname.store'), [
+            'tanggal' => now()->toDateString(),
+            'id_barang' => 999999,
+            'stok_fisik' => -5,
+            'alasan' => 'Test negatif',
+        ]);
+        $responseInvalid->assertSessionHasErrors(['id_barang', 'stok_fisik']);
+    }
+
+    public function test_admin_stok_opname_ui_badges_and_filters(): void
+    {
+        $kategori = Kategori::create(['nama_kategori' => 'Kabel Gas']);
+        $barang1 = Barang::create([
+            'id_kategori' => $kategori->id_kategori,
+            'nama_barang' => 'Kabel Gas Vario 125',
+            'satuan' => 'Pcs',
+            'harga_jual' => 35000,
+            'stok' => 10,
+        ]);
+        $barang2 = Barang::create([
+            'id_kategori' => $kategori->id_kategori,
+            'nama_barang' => 'Kabel Gas Beat FI',
+            'satuan' => 'Pcs',
+            'harga_jual' => 30000,
+            'stok' => 5,
+        ]);
+
+        // 1. Buat sesi pertama: ada selisih (fisik 8 vs sistem 10)
+        $this->actingAs($this->admin)->post(route('admin.stok-opname.store'), [
+            'tanggal' => now()->toDateString(),
+            'keterangan' => 'Audit kabel vario selisih',
+            'id_barang' => $barang1->id_barang,
+            'stok_fisik' => 8,
+            'alasan' => '2 pcs cacat kabel serabut',
+        ]);
+
+        // 2. Buat sesi kedua: sesuai tanpa selisih (fisik 5 vs sistem 5)
+        $this->actingAs($this->admin)->post(route('admin.stok-opname.store'), [
+            'tanggal' => now()->toDateString(),
+            'keterangan' => 'Audit kabel beat sesuai',
+            'id_barang' => $barang2->id_barang,
+            'stok_fisik' => 5,
+            'alasan' => 'Sesuai hitung',
+        ]);
+
+        // 3. Akses halaman index (Semua Sesi)
+        $responseAll = $this->actingAs($this->admin)->get(route('admin.stok-opname'));
+        $responseAll->assertOk();
+        $responseAll->assertSee('Ada Selisih');
+        $responseAll->assertSee('Sesuai');
+        $responseAll->assertSee('Audit kabel vario selisih');
+        $responseAll->assertSee('Audit kabel beat sesuai');
+
+        // 4. Akses filter Ada Selisih
+        $responseSelisih = $this->actingAs($this->admin)->get(route('admin.stok-opname', ['status' => 'selisih']));
+        $responseSelisih->assertOk();
+        $responseSelisih->assertSee('Audit kabel vario selisih');
+        $responseSelisih->assertDontSee('Audit kabel beat sesuai');
+
+        // 5. Akses filter Sesuai
+        $responseSesuai = $this->actingAs($this->admin)->get(route('admin.stok-opname', ['status' => 'sesuai']));
+        $responseSesuai->assertOk();
+        $responseSesuai->assertSee('Audit kabel beat sesuai');
+        $responseSesuai->assertDontSee('Audit kabel vario selisih');
     }
 
     public function test_admin_riwayat_can_cancel_transaction_and_restore_stock(): void

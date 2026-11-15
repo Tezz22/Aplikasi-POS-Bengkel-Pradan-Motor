@@ -2,11 +2,13 @@
     'type' => 'neutral',
     'size' => 'sm',
     'text' => '',
+    'icon' => null,
 ])
 
 @php
     $type = $type ?? 'neutral';
     $size = $size ?? 'sm';
+    $icon = $icon ?? null;
 
     $badgeStyles = [
         'success' => 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-600/20',
@@ -19,6 +21,9 @@
     $sz = $size === 'md' ? 'px-3 py-1 text-xs' : 'px-2.5 py-0.5 text-[11px]';
 @endphp
 
-<span class="inline-flex items-center font-semibold rounded-full {{ $style }} {{ $sz }}">
-    {{ (isset($slot) && $slot->isNotEmpty()) ? $slot : ($text ?? '') }}
+<span class="inline-flex items-center gap-1 font-semibold rounded-full {{ $style }} {{ $sz }}">
+    @if($icon)
+        @include('components.icon', ['name' => $icon, 'size' => ($size === 'md' ? 14 : 12)])
+    @endif
+    <span>{{ (isset($slot) && $slot->isNotEmpty()) ? $slot : ($text ?? '') }}</span>
 </span>

@@ -119,6 +119,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
     // Stok Opname
     Route::get('/stok-opname', [AdminStokOpnameController::class, 'index'])->name('stok-opname');
     Route::post('/stok-opname', [AdminStokOpnameController::class, 'store'])->name('stok-opname.store');
+    Route::put('/stok-opname/{opname}', [AdminStokOpnameController::class, 'update'])->name('stok-opname.update');
     Route::delete('/stok-opname/{opname}', [AdminStokOpnameController::class, 'destroy'])->name('stok-opname.destroy');
 
     // Riwayat Transaksi Penjualan

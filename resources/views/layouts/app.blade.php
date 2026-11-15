@@ -243,6 +243,29 @@
         </div>
     </x-modal>
 
+    {{-- Modal Alert / Dialog Pemberitahuan Universal --}}
+    <x-modal 
+        id="modal-global-alert" 
+        title="Pemberitahuan" 
+        size="sm"
+        :footer="false"
+    >
+        <div class="text-center py-2">
+            <div id="modal-global-alert-icon" class="w-14 h-14 rounded-2xl bg-amber-50 text-amber-600 border border-amber-100 flex items-center justify-center mx-auto mb-3.5 shadow-2xs">
+                @include('components.icon', ['name' => 'alert', 'size' => 26])
+            </div>
+            <h4 id="modal-global-alert-title" class="text-sm font-bold text-gray-900 mb-1.5">Pemberitahuan</h4>
+            <p id="modal-global-alert-message" class="text-xs text-gray-600 leading-relaxed max-w-[280px] mx-auto mb-4">
+                Pesan notifikasi
+            </p>
+            <div class="flex items-center justify-center gap-2">
+                <x-button variant="primary" size="sm" onclick="closeModal('modal-global-alert')" id="modal-global-alert-btn">
+                    Mengerti
+                </x-button>
+            </div>
+        </div>
+    </x-modal>
+
     <!-- Global Helpers for Table Pagination, Search & Modal -->
     <script>
         class TablePagination {
@@ -821,6 +844,97 @@
                 modal.classList.remove('flex');
             }
         }
+
+        // Universal modal alert replacement for window.alert()
+        window.showAlertModal = function(message, title = 'Pemberitahuan', type = 'warning') {
+            const titleEl = document.getElementById('modal-global-alert-title');
+            const msgEl = document.getElementById('modal-global-alert-message');
+            const iconBox = document.getElementById('modal-global-alert-icon');
+
+            if (titleEl) titleEl.textContent = title;
+            if (msgEl) msgEl.textContent = message;
+
+            if (iconBox) {
+                if (type === 'danger' || type === 'error') {
+                    iconBox.className = 'w-14 h-14 rounded-2xl bg-rose-50 text-rose-600 border border-rose-100 flex items-center justify-center mx-auto mb-3.5 shadow-2xs';
+                } else if (type === 'success') {
+                    iconBox.className = 'w-14 h-14 rounded-2xl bg-emerald-50 text-emerald-600 border border-emerald-100 flex items-center justify-center mx-auto mb-3.5 shadow-2xs';
+                } else if (type === 'info') {
+                    iconBox.className = 'w-14 h-14 rounded-2xl bg-blue-50 text-blue-600 border border-blue-100 flex items-center justify-center mx-auto mb-3.5 shadow-2xs';
+                } else {
+                    iconBox.className = 'w-14 h-14 rounded-2xl bg-amber-50 text-amber-600 border border-amber-100 flex items-center justify-center mx-auto mb-3.5 shadow-2xs';
+                }
+            }
+
+            openModal('modal-global-alert');
+        };
+
+        // Override standard window.alert to automatically use modal
+        window.alert = function(message) {
+            window.showAlertModal(message);
+        };
+
+        // Global button loading state for all submit/save buttons
+        document.addEventListener('submit', function(e) {
+            const form = e.target;
+            if (!form || form.tagName !== 'FORM') return;
+
+            // Skip GET forms (search, filter) and forms explicitly opting out
+            const method = (form.getAttribute('method') || 'GET').toUpperCase();
+            if (method === 'GET' || form.hasAttribute('data-no-loading')) return;
+
+            // HTML5 validation check
+            if (form.checkValidity && !form.checkValidity()) return;
+
+            const submitBtn = e.submitter || form.querySelector('button[type="submit"], input[type="submit"]');
+            if (!submitBtn || submitBtn.disabled || submitBtn.dataset.submitting === 'true') return;
+
+            submitBtn.dataset.submitting = 'true';
+
+            // Detect action label
+            const rawText = submitBtn.textContent ? submitBtn.textContent.trim() : (submitBtn.value || '');
+            const lowerText = rawText.toLowerCase();
+
+            let loadingText = 'Menyimpan...';
+            if (lowerText.includes('hapus')) {
+                loadingText = 'Menghapus...';
+            } else if (lowerText.includes('bayar') || lowerText.includes('selesaikan') || lowerText.includes('proses')) {
+                loadingText = 'Memproses...';
+            } else if (lowerText.includes('ekspor') || lowerText.includes('export') || lowerText.includes('cetak') || lowerText.includes('print')) {
+                loadingText = 'Mengunduh...';
+            } else if (lowerText.includes('masuk') || lowerText.includes('login') || lowerText.includes('daftar')) {
+                loadingText = 'Memproses...';
+            }
+
+            // Determine spinner color based on button styling
+            const isWhiteText = submitBtn.classList.contains('text-white') || 
+                                submitBtn.classList.contains('bg-blue-600') || 
+                                submitBtn.classList.contains('bg-rose-600') || 
+                                submitBtn.classList.contains('bg-emerald-600') ||
+                                (!submitBtn.classList.contains('text-gray-') && !submitBtn.classList.contains('text-blue-600'));
+            const spinnerColor = isWhiteText ? 'text-white' : 'text-current';
+
+            // Preserve button width to prevent layout jump
+            const currentWidth = submitBtn.offsetWidth;
+            if (currentWidth > 0) {
+                submitBtn.style.minWidth = currentWidth + 'px';
+            }
+
+            submitBtn.style.pointerEvents = 'none';
+            submitBtn.classList.add('opacity-75', 'cursor-not-allowed');
+
+            submitBtn.innerHTML = `
+                <svg class="animate-spin -ml-1 mr-2 h-4 w-4 ${spinnerColor} inline-block" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+                </svg>
+                ${loadingText}
+            `;
+
+            setTimeout(function() {
+                submitBtn.disabled = true;
+            }, 0);
+        });
 
         // Close open modals on Escape key
         document.addEventListener('keydown', function(e) {
