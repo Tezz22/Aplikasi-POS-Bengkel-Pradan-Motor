@@ -26,6 +26,7 @@
                 <td class="py-3.5 px-4 last:pr-6">
                     <div class="flex items-center gap-1">
                         <x-button-action type="info" onclick="openModal('modal-detail-transaksi-{{ $trx->id_transaksi }}')" title="Lihat Detail Transaksi" />
+                        <x-button-action type="print" onclick="printStrukAdmin('{{ $trx->id_transaksi }}', '58')" title="Cetak Struk Thermal POS" />
                     </div>
                 </td>
             </tr>
@@ -80,6 +81,39 @@
                 <span class="text-gray-700">Total Transaksi:</span>
                 <span class="text-blue-700 text-base">Rp {{ number_format($trx->total, 0, ',', '.') }}</span>
             </div>
+
+            <x-slot:footer>
+                <x-button variant="secondary" size="sm" onclick="closeModal('modal-detail-transaksi-{{ $trx->id_transaksi }}')">
+                    Tutup
+                </x-button>
+                <x-button variant="secondary" size="sm" icon="printer" onclick="printStrukAdmin('{{ $trx->id_transaksi }}', '80')">
+                    Cetak (80mm)
+                </x-button>
+                <x-button variant="primary" size="sm" icon="printer" onclick="printStrukAdmin('{{ $trx->id_transaksi }}', '58')">
+                    Cetak Struk (58mm)
+                </x-button>
+            </x-slot:footer>
         </x-modal>
     @endforeach
+
+    @push('scripts')
+        <script>
+            function printStrukAdmin(id, lebar = '58') {
+                const url = `/admin/riwayat/${id}/struk?autoprint=1&lebar=${lebar}`;
+                let iframe = document.getElementById('receipt-print-frame');
+                if (!iframe) {
+                    iframe = document.createElement('iframe');
+                    iframe.id = 'receipt-print-frame';
+                    iframe.style.position = 'fixed';
+                    iframe.style.right = '0';
+                    iframe.style.bottom = '0';
+                    iframe.style.width = '0';
+                    iframe.style.height = '0';
+                    iframe.style.border = '0';
+                    document.body.appendChild(iframe);
+                }
+                iframe.src = url;
+            }
+        </script>
+    @endpush
 @endsection

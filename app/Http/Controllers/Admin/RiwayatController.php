@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Barang;
 use App\Models\Penjualan;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class RiwayatController extends Controller
@@ -16,6 +17,17 @@ class RiwayatController extends Controller
             ->get();
 
         return view('pages.admin.riwayat', compact('transaksis'));
+    }
+
+    public function struk(Request $request, Penjualan $penjualan)
+    {
+        $penjualan->load(['details', 'user', 'pelanggan']);
+        $lebar = in_array($request->query('lebar'), ['58', '80'])
+            ? (string) $request->query('lebar')
+            : (string) config('toko.lebar_default', '58');
+        $autoprint = $request->boolean('autoprint');
+
+        return view('struk.penjualan', compact('penjualan', 'lebar', 'autoprint'));
     }
 
     public function destroy(Penjualan $penjualan)

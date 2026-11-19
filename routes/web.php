@@ -59,6 +59,8 @@ Route::get('/playground', fn () => view('pages.playground'))->name('playground')
 Route::prefix('kasir')->name('kasir.')->middleware('auth')->group(function () {
     Route::get('/dashboard', [KasirController::class, 'dashboard'])->name('dashboard');
     Route::get('/transaksi', [KasirController::class, 'transaksi'])->name('transaksi');
+    Route::get('/transaksi/stok', [KasirController::class, 'stokJson'])->name('transaksi.stok');
+    Route::get('/transaksi/{penjualan}/struk', [KasirController::class, 'struk'])->name('transaksi.struk');
     Route::post('/transaksi', [KasirController::class, 'storeTransaksi'])->name('transaksi.store');
 
     // Pelanggan CRUD
@@ -124,6 +126,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
 
     // Riwayat Transaksi Penjualan
     Route::get('/riwayat', [AdminRiwayatController::class, 'index'])->name('riwayat');
+    Route::get('/riwayat/{penjualan}/struk', [AdminRiwayatController::class, 'struk'])->name('riwayat.struk');
     Route::delete('/riwayat/{penjualan}', [AdminRiwayatController::class, 'destroy'])->name('riwayat.destroy');
 
     // Laporan & Profil

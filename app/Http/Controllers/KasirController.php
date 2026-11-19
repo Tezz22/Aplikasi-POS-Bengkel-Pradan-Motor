@@ -53,11 +53,39 @@ class KasirController extends Controller
 
     public function transaksi()
     {
-        $barangs = Barang::with('kategori')->orderBy('nama_barang')->get();
-        $jasas = Jasa::orderBy('nama_jasa')->get();
-        $pelanggans = Pelanggan::orderBy('nama')->get();
+        $barangs = Barang::select('id_barang', 'id_kategori', 'nama_barang', 'satuan', 'harga_jual', 'stok')
+            ->with('kategori:id_kategori,nama_kategori')
+            ->orderBy('nama_barang')
+            ->get();
+        $jasas = Jasa::select('id_jasa', 'nama_jasa', 'tarif')->orderBy('nama_jasa')->get();
+        $pelanggans = Pelanggan::select('id_pelanggan', 'nama', 'plat_nomor', 'no_telepon')->orderBy('nama')->get();
 
         return view('pages.kasir.transaksi', compact('barangs', 'jasas', 'pelanggans'));
+    }
+
+    public function stokJson()
+    {
+        $stok = Barang::select('id_barang', 'stok')->get();
+
+        return response()->json($stok)
+            ->header('Cache-Control', 'no-store, no-cache, must-revalidate, post-check=0, pre-check=0');
+    }
+
+    public function struk(Request $request, Penjualan $penjualan)
+    {
+        // Kasir hanya boleh mencetak struk transaksi miliknya sendiri
+        $currentUserId = auth()->user()->id_user ?? auth()->id();
+        if ($penjualan->id_user != $currentUserId) {
+            abort(403, 'Anda tidak memiliki hak akses untuk mencetak struk transaksi ini.');
+        }
+
+        $penjualan->load(['details', 'user', 'pelanggan']);
+        $lebar = in_array($request->query('lebar'), ['58', '80'])
+            ? (string) $request->query('lebar')
+            : (string) config('toko.lebar_default', '58');
+        $autoprint = $request->boolean('autoprint');
+
+        return view('struk.penjualan', compact('penjualan', 'lebar', 'autoprint'));
     }
 
     public function storeTransaksi(Request $request)
@@ -180,7 +208,16 @@ class KasirController extends Controller
                 }
             }
 
-            return redirect()->route('kasir.transaksi')->with('status', "Transaksi #{$penjualan->no_transaksi} berhasil diproses! Total: Rp ".number_format($total, 0, ',', '.').', Kembalian: Rp '.number_format($kembalian, 0, ',', '.'));
+            return redirect()->route('kasir.transaksi')
+                ->with('transaksi_sukses', [
+                    'id_transaksi' => $penjualan->id_transaksi,
+                    'no_transaksi' => $penjualan->no_transaksi,
+                    'total' => $total,
+                    'nominal_bayar' => $validated['nominal_bayar'],
+                    'kembalian' => $kembalian,
+                    'struk_url' => route('kasir.transaksi.struk', $penjualan->id_transaksi),
+                ])
+                ->with('status', "Transaksi #{$penjualan->no_transaksi} berhasil diproses! Total: Rp ".number_format($total, 0, ',', '.').', Kembalian: Rp '.number_format($kembalian, 0, ',', '.'));
         });
     }
 
