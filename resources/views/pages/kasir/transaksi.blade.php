@@ -361,24 +361,24 @@
                 </label>
 
                 <!-- Tombol Aksi -->
-                <div class="flex flex-col gap-2">
+                <div class="flex flex-col gap-2.5">
                     <x-button 
                         variant="primary" 
                         size="md" 
-                        class="w-full justify-center shadow-sm"
+                        class="w-full justify-center shadow-sm py-2.5 font-semibold text-sm gap-2"
                         icon="printer"
                         onclick="printStrukDirect('{{ session('transaksi_sukses')['struk_url'] }}')"
                     >
-                        Cetak Struk (Thermal)
+                        <span>Cetak Struk (Thermal 80mm)</span>
                     </x-button>
 
                     <x-button 
                         variant="secondary" 
                         size="md" 
-                        class="w-full justify-center"
+                        class="w-full justify-center text-sm py-2 text-gray-700"
                         onclick="closeSuccessModal()"
                     >
-                        Transaksi Baru
+                        Transaksi Baru (F2)
                     </x-button>
                 </div>
             </div>

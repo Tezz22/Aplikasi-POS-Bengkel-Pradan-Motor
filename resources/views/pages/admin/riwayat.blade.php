@@ -87,7 +87,7 @@
                     Tutup
                 </x-button>
                 <x-button variant="primary" size="sm" icon="printer" onclick="printStrukAdmin('{{ $trx->id_transaksi }}')">
-                    Cetak Struk
+                    Cetak Struk (80mm)
                 </x-button>
             </x-slot:footer>
         </x-modal>
