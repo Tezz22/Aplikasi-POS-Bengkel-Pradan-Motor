@@ -70,6 +70,7 @@ Route::prefix('kasir')->name('kasir.')->middleware('auth')->group(function () {
     Route::delete('/pelanggan/{pelanggan}', [KasirPelangganController::class, 'destroy'])->name('pelanggan.destroy');
     Route::get('/stok', [KasirController::class, 'stok'])->name('stok');
     Route::get('/riwayat', [KasirController::class, 'riwayat'])->name('riwayat');
+    Route::delete('/riwayat/{penjualan}', [KasirController::class, 'destroyRiwayat'])->name('riwayat.destroy');
     Route::get('/laporan', [KasirController::class, 'laporan'])->name('laporan');
     Route::get('/profil', [KasirController::class, 'profil'])->name('profil');
 });

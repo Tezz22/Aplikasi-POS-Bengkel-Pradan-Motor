@@ -277,4 +277,48 @@ class TransaksiKasirDanStrukTest extends TestCase
         $this->assertEquals(25000, $flash['kembalian']);
         $this->assertStringContainsString('/kasir/transaksi/', $flash['struk_url']);
     }
+
+    public function test_kasir_riwayat_can_delete_transaction_and_restore_stock(): void
+    {
+        $kasir = $this->createKasir();
+        $kategori = Kategori::create(['nama_kategori' => 'Pelumas']);
+        $barang = Barang::create([
+            'id_kategori' => $kategori->id_kategori,
+            'nama_barang' => 'Oli Yamalube 0.8L',
+            'satuan' => 'Botol',
+            'harga_jual' => 45000,
+            'stok' => 5,
+        ]);
+
+        $penjualan = Penjualan::create([
+            'no_transaksi' => 'TRX-KASIR-DEL-01',
+            'id_user' => $kasir->id_user,
+            'tanggal' => now(),
+            'total' => 45000,
+            'nominal_bayar' => 50000,
+            'kembalian' => 5000,
+        ]);
+
+        PenjualanDetail::create([
+            'id_transaksi' => $penjualan->id_transaksi,
+            'jenis_item' => 'barang',
+            'id_barang' => $barang->id_barang,
+            'nama_item' => $barang->nama_barang,
+            'qty' => 2,
+            'harga_satuan' => 45000,
+            'subtotal' => 90000,
+        ]);
+
+        // Simulasikan stok terpotong: 5 - 2 = 3
+        $barang->update(['stok' => 3]);
+
+        // Kasir menghapus riwayat transaksi
+        $response = $this->actingAs($kasir)->delete(route('kasir.riwayat.destroy', $penjualan));
+        $response->assertRedirect(route('kasir.riwayat'));
+        $response->assertSessionHas('status');
+
+        // Pastikan transaksi terhapus dan stok dikembalikan (3 + 2 = 5)
+        $this->assertEquals(5, $barang->fresh()->stok);
+        $this->assertDatabaseMissing('tr_penjualan', ['id_transaksi' => $penjualan->id_transaksi]);
+    }
 }

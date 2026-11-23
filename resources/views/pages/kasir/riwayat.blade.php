@@ -27,6 +27,7 @@
                     <div class="flex items-center gap-1">
                         <x-button-action type="info" onclick="openModal('modal-detail-transaksi-{{ $trx->id_transaksi }}')" title="Lihat Struk" />
                         <x-button-action type="print" onclick="printStruk('{{ $trx->id_transaksi }}')" title="Cetak Struk ke Printer Thermal POS" />
+                        <x-button-action type="delete" onclick="openModal('modal-hapus-transaksi-{{ $trx->id_transaksi }}')" title="Hapus Riwayat Transaksi" />
                     </div>
                 </td>
             </tr>
@@ -93,6 +94,9 @@
                 <x-button variant="secondary" size="sm" onclick="closeModal('modal-detail-transaksi-{{ $trx->id_transaksi }}')">
                     Tutup
                 </x-button>
+                <x-button variant="danger" size="sm" onclick="closeModal('modal-detail-transaksi-{{ $trx->id_transaksi }}'); openModal('modal-hapus-transaksi-{{ $trx->id_transaksi }}')">
+                    Hapus
+                </x-button>
                 <button 
                     type="button" 
                     class="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-medium text-xs rounded-lg shadow-xs transition-colors cursor-pointer"
@@ -106,6 +110,38 @@
                     <span>Cetak Struk</span>
                 </button>
             </x-slot:footer>
+        </x-modal>
+
+        {{-- Modal Konfirmasi Hapus Riwayat Transaksi --}}
+        <x-modal 
+            id="modal-hapus-transaksi-{{ $trx->id_transaksi }}" 
+            title="Konfirmasi Hapus Transaksi" 
+            subtitle="Tindakan ini tidak dapat dibatalkan"
+            :formAction="route('kasir.riwayat.destroy', $trx->id_transaksi)"
+            formMethod="DELETE"
+            submitText="Ya, Hapus Transaksi"
+            submitVariant="danger"
+            size="sm"
+        >
+            <div class="text-center py-2">
+                <div class="w-12 h-12 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center mx-auto mb-3">
+                    <x-icon name="alert" :size="24" />
+                </div>
+                <h4 class="text-sm font-semibold text-gray-900 mb-1">Hapus Riwayat Transaksi Ini?</h4>
+                <p class="text-xs text-gray-600 leading-relaxed mb-3">
+                    Apakah Anda yakin ingin menghapus data transaksi <span class="font-bold text-gray-900">#{{ $trx->no_transaksi }}</span>
+                    @if($trx->pelanggan)
+                        atas nama <span class="font-bold text-gray-900">{{ $trx->pelanggan->nama }}</span>
+                    @endif
+                    dengan total <span class="font-bold text-gray-900">Rp {{ number_format($trx->total, 0, ',', '.') }}</span>?
+                </p>
+                <div class="bg-amber-50 border border-amber-200/80 rounded-lg p-2.5 text-[11px] text-amber-800 text-left">
+                    <div class="flex items-start gap-1.5">
+                        <span class="shrink-0 mt-0.5">⚠️</span>
+                        <span>Stok suku cadang/barang pada transaksi ini akan <strong>otomatis dikembalikan ke stok sistem</strong>.</span>
+                    </div>
+                </div>
+            </div>
         </x-modal>
     @endforeach
 @endsection

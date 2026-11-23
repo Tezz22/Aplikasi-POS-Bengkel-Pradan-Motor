@@ -250,6 +250,26 @@ class KasirController extends Controller
         return view('pages.kasir.riwayat', compact('transaksis'));
     }
 
+    public function destroyRiwayat(Penjualan $penjualan)
+    {
+        DB::transaction(function () use ($penjualan) {
+            // Kembalikan stok suku cadang yang dibeli pada transaksi ini
+            foreach ($penjualan->details as $d) {
+                if ($d->jenis_item === 'barang' && $d->id_barang && $d->qty > 0) {
+                    $barang = Barang::where('id_barang', $d->id_barang)->lockForUpdate()->first();
+                    if ($barang) {
+                        $barang->increment('stok', $d->qty);
+                    }
+                }
+            }
+
+            $penjualan->details()->delete();
+            $penjualan->delete();
+        });
+
+        return redirect()->route('kasir.riwayat')->with('status', "Transaksi #{$penjualan->no_transaksi} berhasil dihapus dan stok suku cadang telah dikembalikan.");
+    }
+
     public function laporan(Request $request)
     {
         $tipe = $request->get('tipe', 'transaksi'); // 'transaksi' (detail) atau 'rekap' (harian)
