@@ -93,9 +93,18 @@
                 <x-button variant="secondary" size="sm" onclick="closeModal('modal-detail-transaksi-{{ $trx->id_transaksi }}')">
                     Tutup
                 </x-button>
-                <x-button variant="primary" size="sm" icon="printer" onclick="printStruk('{{ $trx->id_transaksi }}')">
-                    Cetak Struk (80mm)
-                </x-button>
+                <button 
+                    type="button" 
+                    class="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-medium text-xs rounded-lg shadow-xs transition-colors cursor-pointer"
+                    onclick="printStruk('{{ $trx->id_transaksi }}')"
+                >
+                    <svg class="w-4 h-4 shrink-0 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="6 9 6 2 18 2 18 9"></polyline>
+                        <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
+                        <rect x="6" y="14" width="12" height="8"></rect>
+                    </svg>
+                    <span>Cetak Struk</span>
+                </button>
             </x-slot:footer>
         </x-modal>
     @endforeach

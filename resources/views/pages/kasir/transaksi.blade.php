@@ -361,25 +361,27 @@
                 </label>
 
                 <!-- Tombol Aksi -->
-                <div class="flex flex-col gap-2.5">
-                    <x-button 
-                        variant="primary" 
-                        size="md" 
-                        class="w-full justify-center shadow-sm py-2.5 font-semibold text-sm gap-2"
-                        icon="printer"
+                <div class="flex flex-col gap-2">
+                    <button 
+                        type="button" 
+                        class="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-semibold text-sm rounded-xl shadow-xs transition-colors duration-150 cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500/20"
                         onclick="printStrukDirect('{{ session('transaksi_sukses')['struk_url'] }}')"
                     >
-                        <span>Cetak Struk (Thermal 80mm)</span>
-                    </x-button>
+                        <svg class="w-4 h-4 shrink-0 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="6 9 6 2 18 2 18 9"></polyline>
+                            <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
+                            <rect x="6" y="14" width="12" height="8"></rect>
+                        </svg>
+                        <span>Cetak Struk</span>
+                    </button>
 
-                    <x-button 
-                        variant="secondary" 
-                        size="md" 
-                        class="w-full justify-center text-sm py-2 text-gray-700"
+                    <button 
+                        type="button" 
+                        class="w-full inline-flex items-center justify-center px-4 py-2 bg-white hover:bg-gray-50 active:bg-gray-100 text-gray-700 font-medium text-xs rounded-xl border border-gray-200 shadow-2xs transition-colors duration-150 cursor-pointer focus:outline-none"
                         onclick="closeSuccessModal()"
                     >
-                        Transaksi Baru (F2)
-                    </x-button>
+                        <span>Transaksi Baru</span>
+                    </button>
                 </div>
             </div>
         </x-modal>
