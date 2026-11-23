@@ -161,11 +161,18 @@ class TransaksiKasirDanStrukTest extends TestCase
         $responseKasir1 = $this->actingAs($kasir1)->get(route('kasir.transaksi.struk', $penjualan->id_transaksi));
         $responseKasir1->assertOk();
         $responseKasir1->assertSee('#TRX-20261119-0099');
+        $responseKasir1->assertSee('Kasir Satu');
         $responseKasir1->assertSee('Busi NGK Iridium Snapshot');
-        $responseKasir1->assertSee('Servis Ringan Snapshot');
-        $responseKasir1->assertSee('Rp 60.000');
-        $responseKasir1->assertSee('Rp 100.000');
-        $responseKasir1->assertSee('Rp 40.000');
+        $responseKasir1->assertSee('[JASA] Servis Ringan Snapshot');
+        $responseKasir1->assertSee('45.000');
+        $responseKasir1->assertSee('15.000');
+        $responseKasir1->assertSee('60.000');
+        $responseKasir1->assertSee('100.000');
+        $responseKasir1->assertSee('40.000');
+        $responseKasir1->assertSee('TOTAL');
+        $responseKasir1->assertSee('TUNAI');
+        $responseKasir1->assertSee('KEMBALI');
+        $responseKasir1->assertSee('Total Item');
 
         // 3. Kasir 2 (bukan pemilik) dilarang mencetak struk kasir 1 (403 Forbidden)
         $responseKasir2 = $this->actingAs($kasir2)->get(route('kasir.transaksi.struk', $penjualan->id_transaksi));
@@ -177,7 +184,7 @@ class TransaksiKasirDanStrukTest extends TestCase
         $responseAdmin->assertSee('#TRX-20261119-0099');
     }
 
-    public function test_struk_mendukung_pilihan_lebar_kertas_dan_fallback_default(): void
+    public function test_struk_berukuran_tetap_80mm_tanpa_opsi_58mm(): void
     {
         $kasir = $this->createKasir();
         $penjualan = Penjualan::create([
@@ -189,22 +196,11 @@ class TransaksiKasirDanStrukTest extends TestCase
             'kembalian' => 0,
         ]);
 
-        // Lebar 58mm
-        $res58 = $this->actingAs($kasir)->get(route('kasir.transaksi.struk', [$penjualan->id_transaksi, 'lebar' => '58']));
-        $res58->assertOk();
-        $res58->assertSee('struk-58');
-        $res58->assertSee('58mm auto');
-
-        // Lebar 80mm
-        $res80 = $this->actingAs($kasir)->get(route('kasir.transaksi.struk', [$penjualan->id_transaksi, 'lebar' => '80']));
-        $res80->assertOk();
-        $res80->assertSee('struk-80');
-        $res80->assertSee('80mm auto');
-
-        // Nilai tidak valid otomatis memakai default config (58)
-        $resInvalid = $this->actingAs($kasir)->get(route('kasir.transaksi.struk', [$penjualan->id_transaksi, 'lebar' => 'invalid-size']));
-        $resInvalid->assertOk();
-        $resInvalid->assertSee('struk-58');
+        $response = $this->actingAs($kasir)->get(route('kasir.transaksi.struk', $penjualan->id_transaksi));
+        $response->assertOk();
+        $response->assertSee('80mm auto');
+        $response->assertSee('72mm');
+        $response->assertDontSee('58mm');
     }
 
     public function test_struk_memakai_snapshot_data_transaksi_bukan_master_terbaru(): void

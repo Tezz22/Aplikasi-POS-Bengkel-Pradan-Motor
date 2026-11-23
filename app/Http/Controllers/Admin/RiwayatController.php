@@ -22,9 +22,7 @@ class RiwayatController extends Controller
     public function struk(Request $request, Penjualan $penjualan)
     {
         $penjualan->load(['details', 'user', 'pelanggan']);
-        $lebar = in_array($request->query('lebar'), ['58', '80'])
-            ? (string) $request->query('lebar')
-            : (string) config('toko.lebar_default', '58');
+        $lebar = '80';
         $autoprint = $request->boolean('autoprint');
 
         return view('struk.penjualan', compact('penjualan', 'lebar', 'autoprint'));

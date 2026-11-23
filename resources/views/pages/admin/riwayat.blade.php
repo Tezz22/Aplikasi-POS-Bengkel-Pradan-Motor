@@ -26,7 +26,7 @@
                 <td class="py-3.5 px-4 last:pr-6">
                     <div class="flex items-center gap-1">
                         <x-button-action type="info" onclick="openModal('modal-detail-transaksi-{{ $trx->id_transaksi }}')" title="Lihat Detail Transaksi" />
-                        <x-button-action type="print" onclick="printStrukAdmin('{{ $trx->id_transaksi }}', '58')" title="Cetak Struk Thermal POS" />
+                        <x-button-action type="print" onclick="printStrukAdmin('{{ $trx->id_transaksi }}')" title="Cetak Struk Thermal POS" />
                     </div>
                 </td>
             </tr>
@@ -86,11 +86,8 @@
                 <x-button variant="secondary" size="sm" onclick="closeModal('modal-detail-transaksi-{{ $trx->id_transaksi }}')">
                     Tutup
                 </x-button>
-                <x-button variant="secondary" size="sm" icon="printer" onclick="printStrukAdmin('{{ $trx->id_transaksi }}', '80')">
-                    Cetak (80mm)
-                </x-button>
-                <x-button variant="primary" size="sm" icon="printer" onclick="printStrukAdmin('{{ $trx->id_transaksi }}', '58')">
-                    Cetak Struk (58mm)
+                <x-button variant="primary" size="sm" icon="printer" onclick="printStrukAdmin('{{ $trx->id_transaksi }}')">
+                    Cetak Struk
                 </x-button>
             </x-slot:footer>
         </x-modal>
@@ -98,8 +95,8 @@
 
     @push('scripts')
         <script>
-            function printStrukAdmin(id, lebar = '58') {
-                const url = `/admin/riwayat/${id}/struk?autoprint=1&lebar=${lebar}`;
+            function printStrukAdmin(id) {
+                const url = `/admin/riwayat/${id}/struk?autoprint=1`;
                 let iframe = document.getElementById('receipt-print-frame');
                 if (!iframe) {
                     iframe = document.createElement('iframe');
