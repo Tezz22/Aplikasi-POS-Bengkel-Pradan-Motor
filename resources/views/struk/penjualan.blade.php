@@ -16,13 +16,13 @@
             font-family: 'Courier New', Courier, monospace;
             background-color: #f1f5f9;
             color: #000;
-            line-height: 1.25;
+            line-height: 1;
             -webkit-print-color-adjust: exact;
             print-color-adjust: exact;
         }
 
         @page {
-            size: 80mm auto;
+            size: 58mm auto;
             margin: 0;
         }
 
@@ -146,14 +146,14 @@
             color: #94a3b8;
         }
 
-        /* Container Struk Thermal 80mm */
+        /* Container Struk Thermal 58mm */
         .struk {
-            width: 72mm;
+            width: 54mm;
             margin: 24px auto;
-            padding: 3mm 0 10mm;
+            padding: 3mm 0 0;
             font-family: 'Courier New', Courier, monospace;
-            font-size: 12px;
-            line-height: 1.25;
+            font-size: 11px;
+            line-height: 1.1;
             color: #000;
             background: #fff;
             box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
@@ -163,31 +163,31 @@
         .kiri   { text-align: left; }
         .kanan  { text-align: right; white-space: nowrap; }
         .tebal  { font-weight: 700; }
-        .garis  { border-top: 1px dashed #000; margin: 1.5mm 0; }
+        .garis  { border-top: 1px dashed #000; margin: 0.5mm 0; }
         .baris  { display: flex; justify-content: space-between; align-items: flex-start; gap: 1ch; }
 
         .store-title {
-            font-size: 14px;
+            font-size: 12px;
             font-weight: 700;
             letter-spacing: 0.5px;
             text-transform: uppercase;
         }
 
         .store-desc {
-            font-size: 11px;
-            line-height: 1.2;
+            font-size: 10px;
+            line-height: 1.1;
             word-break: break-word;
         }
 
         .item-block {
-            margin: 1.5mm 0;
+            margin: 0.25mm 0;
             break-inside: avoid;
             page-break-inside: avoid;
         }
 
         .item-nama {
             word-break: break-word;
-            line-height: 1.2;
+            line-height: 1.1;
         }
 
         .item-sub {
@@ -202,7 +202,7 @@
         }
 
         .cutter-space {
-            height: 10mm;
+            height: 2mm;
             display: block;
         }
 
@@ -211,7 +211,11 @@
                 margin: 0 !important;
                 padding: 0 !important;
                 background: #fff !important;
-                width: 80mm !important;
+                width: 58mm !important;
+            }
+
+            body * {
+                visibility: hidden !important;
             }
 
             .no-print {
@@ -219,13 +223,38 @@
             }
 
             .struk {
+                display: block !important;
+                visibility: visible !important;
+                position: absolute !important;
+                top: 0 !important;
+                left: 0 !important;
                 margin: 0 !important;
-                padding: 0 4mm 10mm !important;
-                width: 80mm !important;
+                padding: 0 1mm !important;
+                width: 48mm !important;
+                max-width: 48mm !important;
                 box-sizing: border-box !important;
                 box-shadow: none !important;
                 break-inside: avoid;
                 page-break-inside: avoid;
+                background: #fff !important;
+                color: #000 !important;
+                font-family: Arial, sans-serif !important;
+                font-size: 9px !important;
+                line-height: 1.4 !important;
+                overflow-wrap: anywhere;
+            }
+
+            .struk * {
+                visibility: visible !important;
+            }
+
+            .struk .store-title {
+                font-size: 14px !important;
+            }
+
+            .struk .store-desc {
+                font-size: 9px !important;
+                line-height: 1.4 !important;
             }
 
             .baris, .item-block {
@@ -240,7 +269,7 @@
     <div class="no-print-toolbar no-print">
         <div class="toolbar-container">
             <div class="toolbar-info">
-                <span class="toolbar-badge">Thermal 80mm</span>
+                <span class="toolbar-badge">Thermal 58mm</span>
                 <span class="toolbar-title">Struk #{{ $penjualan->no_transaksi }}</span>
             </div>
 
@@ -262,7 +291,7 @@
         </div>
     </div>
 
-    {{-- Wadah Struk Thermal 80mm --}}
+    {{-- Wadah Struk Thermal 58mm --}}
     <div class="struk" id="receipt-area">
         {{-- 1. Header Toko --}}
         <div class="tengah">
@@ -337,11 +366,11 @@
         <div class="tengah">
             <div>{{ config('toko.footer', 'TERIMA KASIH ATAS KUNJUNGAN ANDA') }}</div>
             @if(config('toko.catatan'))
-                <div class="store-desc" style="margin-top: 1.5mm;">{{ config('toko.catatan') }}</div>
+                <div class="store-desc" style="margin-top: 0.5mm;">{{ config('toko.catatan') }}</div>
             @endif
         </div>
 
-        {{-- Ruang kosong aman untuk auto-cutter printer thermal (10mm) --}}
+        {{-- Ruang pendek untuk auto-cutter printer thermal --}}
         <div class="cutter-space"></div>
     </div>
 
