@@ -7,6 +7,7 @@ use App\Models\Pembelian;
 use App\Models\Penjualan;
 use App\Models\PenjualanDetail;
 use App\Models\OpnameDetail;
+use App\Support\LaporanBulananService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 
@@ -23,8 +24,18 @@ class LaporanController extends Controller
 
         $data = collect();
         $summary = [];
+        $extraData = [];
 
         switch ($jenis) {
+            case 'bulanan':
+                $extraData = LaporanBulananService::getData($request);
+                $summary = [
+                    'total_nominal'   => $extraData['totalTahunanNominal'],
+                    'total_transaksi' => $extraData['totalTahunanTransaksi'],
+                    'total_item'      => $extraData['totalTahunanQty'],
+                ];
+                break;
+
             case 'pembelian':
                 $data = Pembelian::with(['barang', 'supplier', 'user'])
                     ->whereBetween('tanggal', [$tanggalMulai, $tanggalAkhir])
@@ -82,13 +93,13 @@ class LaporanController extends Controller
                 break;
         }
 
-        return view('pages.admin.laporan', compact(
-            'jenis',
-            'tanggalMulai',
-            'tanggalAkhir',
-            'data',
-            'summary'
-        ));
+        return view('pages.admin.laporan', array_merge([
+            'jenis'        => $jenis,
+            'tanggalMulai' => $tanggalMulai,
+            'tanggalAkhir' => $tanggalAkhir,
+            'data'         => $data,
+            'summary'      => $summary,
+        ], $extraData));
     }
 }
 

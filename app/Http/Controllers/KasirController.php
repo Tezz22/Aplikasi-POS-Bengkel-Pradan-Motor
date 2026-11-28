@@ -7,6 +7,7 @@ use App\Models\Jasa;
 use App\Models\Pelanggan;
 use App\Models\Penjualan;
 use App\Models\PenjualanDetail;
+use App\Support\LaporanBulananService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -272,7 +273,7 @@ class KasirController extends Controller
 
     public function laporan(Request $request)
     {
-        $tipe = $request->get('tipe', 'transaksi'); // 'transaksi' (detail) atau 'rekap' (harian)
+        $tipe = $request->get('tipe', 'transaksi'); // 'transaksi' (detail), 'rekap' (harian), atau 'bulanan'
 
         // Tentukan tanggal default:
         // Jika belum ada input tanggal dan ada data transaksi sebelumnya, gunakan awal bulan transaksi terakhir
@@ -290,35 +291,47 @@ class KasirController extends Controller
         $startDateTime = $tanggalMulai . ' 00:00:00';
         $endDateTime = $tanggalAkhir . ' 23:59:59';
 
-        // Ambil transaksi penjualan sesuai rentang tanggal
-        $transaksis = Penjualan::with(['pelanggan', 'user', 'details.barang', 'details.jasa'])
-            ->whereBetween('tanggal', [$startDateTime, $endDateTime])
-            ->orderBy('tanggal', 'desc')
-            ->get();
+        $extraData = [];
 
-        // Rekapitulasi per tanggal
-        $rekapHarian = Penjualan::selectRaw('DATE(tanggal) as tgl, COUNT(*) as jml_transaksi, SUM(total) as total_nominal')
-            ->whereBetween('tanggal', [$startDateTime, $endDateTime])
-            ->groupBy('tgl')
-            ->orderBy('tgl', 'desc')
-            ->get();
+        if ($tipe === 'bulanan') {
+            $extraData = LaporanBulananService::getData($request);
+            $totalNominal = $extraData['totalTahunanNominal'];
+            $totalSetoran = $totalNominal;
+            $totalTransaksi = $extraData['totalTahunanTransaksi'];
+            $rataRata = $extraData['rataRataBulanan'];
+            $transaksis = collect();
+            $rekapHarian = collect();
+        } else {
+            // Ambil transaksi penjualan sesuai rentang tanggal
+            $transaksis = Penjualan::with(['pelanggan', 'user', 'details.barang', 'details.jasa'])
+                ->whereBetween('tanggal', [$startDateTime, $endDateTime])
+                ->orderBy('tanggal', 'desc')
+                ->get();
 
-        $totalNominal = (int) $transaksis->sum('total');
-        $totalTransaksi = $transaksis->count();
-        $totalSetoran = $totalNominal;
-        $rataRata = $totalTransaksi > 0 ? (int) round($transaksis->avg('total')) : 0;
+            // Rekapitulasi per tanggal
+            $rekapHarian = Penjualan::selectRaw('DATE(tanggal) as tgl, COUNT(*) as jml_transaksi, SUM(total) as total_nominal')
+                ->whereBetween('tanggal', [$startDateTime, $endDateTime])
+                ->groupBy('tgl')
+                ->orderBy('tgl', 'desc')
+                ->get();
 
-        return view('pages.kasir.laporan', compact(
-            'tipe',
-            'tanggalMulai',
-            'tanggalAkhir',
-            'transaksis',
-            'rekapHarian',
-            'totalNominal',
-            'totalSetoran',
-            'totalTransaksi',
-            'rataRata'
-        ));
+            $totalNominal = (int) $transaksis->sum('total');
+            $totalTransaksi = $transaksis->count();
+            $totalSetoran = $totalNominal;
+            $rataRata = $totalTransaksi > 0 ? (int) round($transaksis->avg('total')) : 0;
+        }
+
+        return view('pages.kasir.laporan', array_merge([
+            'tipe'           => $tipe,
+            'tanggalMulai'   => $tanggalMulai,
+            'tanggalAkhir'   => $tanggalAkhir,
+            'transaksis'     => $transaksis,
+            'rekapHarian'    => $rekapHarian,
+            'totalNominal'   => $totalNominal,
+            'totalSetoran'   => $totalSetoran,
+            'totalTransaksi' => $totalTransaksi,
+            'rataRata'       => $rataRata,
+        ], $extraData));
     }
 
     public function profil()

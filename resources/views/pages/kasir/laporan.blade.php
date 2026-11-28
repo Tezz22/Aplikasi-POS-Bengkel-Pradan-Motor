@@ -1,7 +1,11 @@
 @extends('layouts.app')
 
 @php
-    $currentTitle = $tipe === 'rekap' ? 'Rekapitulasi Penjualan Harian Kasir' : 'Laporan Transaksi Penjualan Kasir';
+    $currentTitle = match($tipe) {
+        'bulanan' => 'Grafik Penjualan & Produk Terlaris Bulanan Kasir',
+        'rekap'   => 'Rekapitulasi Penjualan Harian Kasir',
+        default   => 'Laporan Transaksi Penjualan Kasir',
+    };
 @endphp
 
 @section('title', 'Laporan Kasir')
@@ -26,7 +30,11 @@
                 {{ $currentTitle }}
             </h2>
             <p class="text-xs text-gray-700 mt-0.5 font-medium">
-                Periode: <strong class="text-black">{{ \Carbon\Carbon::parse($tanggalMulai)->translatedFormat('d F Y') }}</strong> s/d <strong class="text-black">{{ \Carbon\Carbon::parse($tanggalAkhir)->translatedFormat('d F Y') }}</strong>
+                @if($tipe === 'bulanan')
+                    Periode Tahun: <strong class="text-black">{{ $tahun ?? date('Y') }}</strong>
+                @else
+                    Periode: <strong class="text-black">{{ \Carbon\Carbon::parse($tanggalMulai)->translatedFormat('d F Y') }}</strong> s/d <strong class="text-black">{{ \Carbon\Carbon::parse($tanggalAkhir)->translatedFormat('d F Y') }}</strong>
+                @endif
             </p>
         </div>
 
@@ -48,7 +56,8 @@
         icon="laporan" 
     />
 
-    {{-- Ringkasan Statistik Periode (Cards) --}}
+    {{-- Ringkasan Statistik Periode (Cards) (Hanya tampil di mode transaksi/rekap) --}}
+    @if($tipe !== 'bulanan')
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4 print:hidden">
         <div class="bg-white p-4 rounded-2xl border border-gray-100 shadow-xs flex items-center justify-between">
             <div>
@@ -78,7 +87,7 @@
             </div>
         </div>
     </div>
-
+    @endif
 
     {{-- Filter Panel: Tipe Tampilan & Tanggal Periode (Hanya di Web) --}}
     <div class="bg-white p-4 sm:p-5 rounded-2xl border border-gray-100 shadow-xs mb-4 print:hidden">
@@ -95,31 +104,63 @@
                                 class="w-full px-3.5 py-2.5 bg-gray-50/70 border border-gray-200 rounded-xl text-xs font-semibold text-gray-800 shadow-2xs focus:bg-white focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 cursor-pointer">
                             <option value="transaksi" {{ $tipe === 'transaksi' ? 'selected' : '' }}>Rincian Seluruh Transaksi</option>
                             <option value="rekap" {{ $tipe === 'rekap' ? 'selected' : '' }}>Rekapitulasi Penjualan Harian</option>
+                            <option value="bulanan" {{ $tipe === 'bulanan' ? 'selected' : '' }}>Grafik Penjualan & Barang Terlaris Bulanan</option>
                         </select>
                     </div>
                 </div>
 
-                <!-- Input Tanggal Mulai -->
-                <div class="lg:col-span-3">
-                    <label class="block text-xs font-semibold text-gray-700 mb-1.5">
-                        Dari Tanggal
-                    </label>
-                    <input type="date" 
-                           name="tanggal_mulai" 
-                           value="{{ $tanggalMulai }}" 
-                           class="w-full px-3.5 py-2 bg-gray-50/70 border border-gray-200 rounded-xl text-xs font-medium text-gray-800 shadow-2xs focus:bg-white focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 cursor-pointer">
-                </div>
+                @if($tipe === 'bulanan')
+                    <!-- Pilihan Tahun -->
+                    <div class="lg:col-span-3">
+                        <label class="block text-xs font-semibold text-gray-700 mb-1.5">
+                            Pilih Tahun
+                        </label>
+                        <select name="tahun" 
+                                onchange="document.getElementById('form-filter-laporan').submit()"
+                                class="w-full px-3.5 py-2.5 bg-gray-50/70 border border-gray-200 rounded-xl text-xs font-semibold text-gray-800 shadow-2xs focus:bg-white focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 cursor-pointer">
+                            @foreach($daftarTahun ?? [date('Y')] as $yr)
+                                <option value="{{ $yr }}" {{ (isset($tahun) && $tahun == $yr) ? 'selected' : '' }}>Tahun {{ $yr }}</option>
+                            @endforeach
+                        </select>
+                    </div>
 
-                <!-- Input Tanggal Selesai -->
-                <div class="lg:col-span-3">
-                    <label class="block text-xs font-semibold text-gray-700 mb-1.5">
-                        Sampai Tanggal
-                    </label>
-                    <input type="date" 
-                           name="tanggal_akhir" 
-                           value="{{ $tanggalAkhir }}" 
-                           class="w-full px-3.5 py-2 bg-gray-50/70 border border-gray-200 rounded-xl text-xs font-medium text-gray-800 shadow-2xs focus:bg-white focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 cursor-pointer">
-                </div>
+                    <!-- Filter Bulan (Opsional) -->
+                    <div class="lg:col-span-3">
+                        <label class="block text-xs font-semibold text-gray-700 mb-1.5">
+                            Filter Bulan
+                        </label>
+                        <select name="bulan_filter" 
+                                onchange="document.getElementById('form-filter-laporan').submit()"
+                                class="w-full px-3.5 py-2.5 bg-gray-50/70 border border-gray-200 rounded-xl text-xs font-semibold text-gray-800 shadow-2xs focus:bg-white focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 cursor-pointer">
+                            <option value="all" {{ ($bulanFilter ?? 'all') === 'all' ? 'selected' : '' }}>Semua Bulan (Januari - Desember)</option>
+                            @foreach($namaBulanList ?? [] as $num => $nama)
+                                <option value="{{ $num }}" {{ ($bulanFilter ?? '') == $num ? 'selected' : '' }}>{{ $nama }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                @else
+                    <!-- Input Tanggal Mulai -->
+                    <div class="lg:col-span-3">
+                        <label class="block text-xs font-semibold text-gray-700 mb-1.5">
+                            Dari Tanggal
+                        </label>
+                        <input type="date" 
+                               name="tanggal_mulai" 
+                               value="{{ $tanggalMulai }}" 
+                               class="w-full px-3.5 py-2 bg-gray-50/70 border border-gray-200 rounded-xl text-xs font-medium text-gray-800 shadow-2xs focus:bg-white focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 cursor-pointer">
+                    </div>
+
+                    <!-- Input Tanggal Selesai -->
+                    <div class="lg:col-span-3">
+                        <label class="block text-xs font-semibold text-gray-700 mb-1.5">
+                            Sampai Tanggal
+                        </label>
+                        <input type="date" 
+                               name="tanggal_akhir" 
+                               value="{{ $tanggalAkhir }}" 
+                               class="w-full px-3.5 py-2 bg-gray-50/70 border border-gray-200 rounded-xl text-xs font-medium text-gray-800 shadow-2xs focus:bg-white focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 cursor-pointer">
+                    </div>
+                @endif
 
                 <!-- Tombol Filter & Reset -->
                 <div class="lg:col-span-2 flex items-center gap-2">
@@ -130,7 +171,7 @@
                     </button>
                     <a href="{{ route('kasir.laporan', ['tipe' => $tipe]) }}" 
                        class="px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-xl text-xs font-medium transition-colors cursor-pointer"
-                       title="Reset Periode">
+                       title="Reset Filter">
                         @include('components.icon', ['name' => 'refresh', 'size' => 14])
                     </a>
                 </div>
@@ -138,8 +179,10 @@
         </form>
     </div>
 
-    {{-- Tabel Laporan: Rincian Transaksi ATAU Rekapitulasi Harian --}}
-    @if($tipe === 'transaksi')
+    {{-- Tabel Laporan: Bulanan / Rincian Transaksi / Rekapitulasi Harian --}}
+    @if($tipe === 'bulanan')
+        @include('partials.laporan-bulanan')
+    @elseif($tipe === 'transaksi')
         <x-table 
             id="table-laporan-transaksi-kasir" 
             :searchable="true" 
@@ -251,7 +294,7 @@
             size="sm" 
             icon="clipboard" 
             text="Ekspor CSV / Excel" 
-            onclick="exportReportToCSV('Laporan_{{ $tipe === 'rekap' ? 'Rekap_Harian' : 'Transaksi' }}_Kasir_{{ $tanggalMulai }}_sd_{{ $tanggalAkhir }}.csv')" 
+            onclick="exportReportToCSV('Laporan_{{ $tipe === 'bulanan' ? 'Bulanan_' . ($tahun ?? date('Y')) : ($tipe === 'rekap' ? 'Rekap_Harian' : 'Transaksi') . '_Kasir_' . $tanggalMulai . '_sd_' . $tanggalAkhir }}.csv')" 
         />
     </div>
 
